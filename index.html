@@ -173,6 +173,54 @@
 			margin-bottom: 1.5rem;
 		}
 
+		.input-group.range-group {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		.input-group.range-group input[type="number"] {
+			width: 80px;
+			flex-shrink: 0;
+		}
+
+		input[type="range"] {
+			flex-grow: 1;
+			height: 4px;
+			-webkit-appearance: none;
+			background: var(--border-color);
+			border-radius: 2px;
+			outline: none;
+		}
+
+		input[type="range"]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			width: 16px;
+			height: 16px;
+			background: var(--primary-color);
+			border-radius: 50%;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		input[type="range"]::-webkit-slider-thumb:hover {
+			transform: scale(1.1);
+		}
+
+		input[type="range"]::-moz-range-thumb {
+			width: 16px;
+			height: 16px;
+			background: var(--primary-color);
+			border: none;
+			border-radius: 50%;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		input[type="range"]::-moz-range-thumb:hover {
+			transform: scale(1.1);
+		}
+
 		label {
 			display: block;
 			margin-bottom: 0.5rem;
@@ -490,9 +538,9 @@
 
 				<div class="tab-content" id="tokens">
 					<h2>Генератор токенов</h2>
-					<div class="input-group">
-						<label for="tokenLength">Длина токена</label>
+					<div class="input-group range-group">
 						<input type="number" id="tokenLength" value="32" min="1" max="128">
+						<input type="range" id="tokenLengthRange" value="32" min="1" max="128">
 					</div>
 
 					<div class="checkbox-group">
@@ -1055,6 +1103,7 @@
 		// Генератор токенов
 		document.addEventListener('DOMContentLoaded', () => {
 			const tokenLength = document.getElementById('tokenLength');
+			const tokenLengthRange = document.getElementById('tokenLengthRange');
 			const useUppercase = document.getElementById('useUppercase');
 			const useLowercase = document.getElementById('useLowercase');
 			const useNumbers = document.getElementById('useNumbers');
@@ -1063,6 +1112,15 @@
 			const tokenOutput = document.getElementById('tokenOutput');
 			const tokenResult = document.getElementById('tokenResult');
 			const copyTokenButton = document.getElementById('copyTokenButton');
+
+			// Синхронизация значений ползунка и числового поля
+			tokenLength.addEventListener('input', () => {
+				tokenLengthRange.value = tokenLength.value;
+			});
+
+			tokenLengthRange.addEventListener('input', () => {
+				tokenLength.value = tokenLengthRange.value;
+			});
 
 			function generateToken(length, options) {
 				const charset = {

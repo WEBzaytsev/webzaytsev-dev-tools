@@ -661,7 +661,7 @@
 			<ul class="nav-menu">
 				<li><a href="#" class="nav-link active">Инструменты</a></li>
 				<li><a href="#" class="nav-link">О проекте</a></li>
-				<li><a href="#" class="nav-link">GitHub</a></li>
+				<li><a href="https://github.com/WEBzaytsev/webzaytsev-dev-tools" class="nav-link" target="_blank">GitHub</a></li>
 			</ul>
 		</div>
 		<a href="#" class="suggest-feature">
@@ -895,6 +895,11 @@
 			const navLinks = document.querySelectorAll('.nav-link');
 			navLinks.forEach(link => {
 				link.addEventListener('click', (e) => {
+					// Пропускаем обработку для ссылки на GitHub
+					if (link.getAttribute('href').includes('github.com')) {
+						return;
+					}
+					
 					e.preventDefault();
 					navLinks.forEach(l => l.classList.remove('active'));
 					link.classList.add('active');
@@ -1507,8 +1512,7 @@
 				e.preventDefault();
 				const description = featureForm.querySelector('textarea').value;
 				if (description.trim()) {
-					// Формируем URL для создания issue на GitHub
-					const issueUrl = `https://github.com/YOUR_USERNAME/YOUR_REPO/issues/new?title=${encodeURIComponent('Предложение новой функции')}&body=${encodeURIComponent(description)}`;
+					const issueUrl = `https://github.com/WEBzaytsev/webzaytsev-dev-tools/issues/new?title=${encodeURIComponent('Предложение новой функции')}&body=${encodeURIComponent(description)}`;
 					window.open(issueUrl, '_blank');
 					modal.classList.remove('active');
 					featureForm.reset();

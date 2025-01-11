@@ -679,6 +679,7 @@
 					<button class="tab-button active" data-tab="ports">Порты</button>
 					<button class="tab-button" data-tab="hello">Docker</button>
 					<button class="tab-button" data-tab="tokens">Токены</button>
+					<button class="tab-button" data-tab="lorem">Lorem Ipsum</button>
 				</div>
 
 				<div class="tab-content active" id="ports">
@@ -791,6 +792,46 @@
 					<div class="code-output-wrapper" style="margin-top: 1rem;" id="tokenOutput">
 						<pre class="code-output" id="tokenResult"></pre>
 						<button class="copy-button" id="copyTokenButton">
+							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+							</svg>
+							Копировать
+						</button>
+					</div>
+				</div>
+
+				<div class="tab-content" id="lorem">
+					<h2>Генератор Lorem Ipsum</h2>
+					
+					<div class="input-group range-group">
+						<label for="paragraphCount">Количество параграфов</label>
+						<input type="number" id="paragraphCount" value="3" min="1" max="10">
+						<input type="range" id="paragraphCountRange" value="3" min="1" max="10">
+					</div>
+
+					<div class="input-group range-group">
+						<label for="sentenceCount">Предложений в параграфе</label>
+						<input type="number" id="sentenceCount" value="5" min="1" max="15">
+						<input type="range" id="sentenceCountRange" value="5" min="1" max="15">
+					</div>
+
+					<div class="checkbox-group">
+						<input type="checkbox" id="startWithLorem" checked>
+						<label for="startWithLorem">Начать с "Lorem ipsum dolor sit amet"</label>
+					</div>
+
+					<div class="button-group" style="display: flex; gap: 1rem; margin: 1.5rem 0;">
+						<button class="secondary-button" id="generateLorem" style="flex: 1;">
+							<svg style="width: 16px; height: 16px; margin-right: 0.5rem;" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+							</svg>
+							Сгенерировать
+						</button>
+					</div>
+
+					<div class="code-output-wrapper" style="margin-top: 1rem;" id="loremOutput">
+						<pre class="code-output" id="loremResult"></pre>
+						<button class="copy-button" id="copyLoremButton">
 							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
 								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
 							</svg>
@@ -1518,6 +1559,116 @@
 					featureForm.reset();
 				}
 			});
+		});
+
+		// Генератор Lorem Ipsum
+		document.addEventListener('DOMContentLoaded', () => {
+			const paragraphCount = document.getElementById('paragraphCount');
+			const paragraphCountRange = document.getElementById('paragraphCountRange');
+			const sentenceCount = document.getElementById('sentenceCount');
+			const sentenceCountRange = document.getElementById('sentenceCountRange');
+			const startWithLorem = document.getElementById('startWithLorem');
+			const generateLorem = document.getElementById('generateLorem');
+			const loremResult = document.getElementById('loremResult');
+			const copyLoremButton = document.getElementById('copyLoremButton');
+
+			// Синхронизация значений ползунков и числовых полей
+			paragraphCount.addEventListener('input', () => {
+				paragraphCountRange.value = paragraphCount.value;
+				generateLoremText();
+			});
+
+			paragraphCountRange.addEventListener('input', () => {
+				paragraphCount.value = paragraphCountRange.value;
+				generateLoremText();
+			});
+
+			sentenceCount.addEventListener('input', () => {
+				sentenceCountRange.value = sentenceCount.value;
+				generateLoremText();
+			});
+
+			sentenceCountRange.addEventListener('input', () => {
+				sentenceCount.value = sentenceCountRange.value;
+				generateLoremText();
+			});
+
+			startWithLorem.addEventListener('change', generateLoremText);
+			generateLorem.addEventListener('click', generateLoremText);
+
+			const words = [
+				'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+				'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+				'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation',
+				'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo', 'consequat',
+				'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate', 'velit', 'esse',
+				'cillum', 'eu', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint', 'occaecat',
+				'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia', 'deserunt',
+				'mollit', 'anim', 'id', 'est', 'laborum'
+			];
+
+			function getRandomWord() {
+				return words[Math.floor(Math.random() * words.length)];
+			}
+
+			function capitalizeFirstLetter(string) {
+				return string.charAt(0).toUpperCase() + string.slice(1);
+			}
+
+			function generateSentence(isFirst) {
+				const wordCount = Math.floor(Math.random() * 8) + 5; // 5-12 слов в предложении
+				let sentence = [];
+
+				if (isFirst && startWithLorem.checked) {
+					sentence = ['Lorem', 'ipsum', 'dolor', 'sit', 'amet'];
+				} else {
+					for (let i = 0; i < wordCount; i++) {
+						sentence.push(i === 0 ? capitalizeFirstLetter(getRandomWord()) : getRandomWord());
+					}
+				}
+
+				return sentence.join(' ') + '.';
+			}
+
+			function generateParagraph(isFirst) {
+				const sentences = [];
+				const count = parseInt(sentenceCount.value);
+
+				for (let i = 0; i < count; i++) {
+					sentences.push(generateSentence(isFirst && i === 0));
+				}
+
+				return sentences.join(' ');
+			}
+
+			function generateLoremText() {
+				const paragraphs = [];
+				const count = parseInt(paragraphCount.value);
+
+				for (let i = 0; i < count; i++) {
+					paragraphs.push(generateParagraph(i === 0));
+				}
+
+				loremResult.textContent = paragraphs.join('\n\n');
+			}
+
+			copyLoremButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(loremResult.textContent)
+					.then(() => {
+						copyLoremButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyLoremButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
+
+			// Генерируем текст при загрузке страницы
+			generateLoremText();
 		});
 	</script>
 

@@ -563,9 +563,7 @@
 						<label for="useSpecial">Специальные символы (!@#$%^&*)</label>
 					</div>
 
-					<button id="generateTokenButton">Сгенерировать токен</button>
-
-					<div class="code-output-wrapper" style="margin-top: 1rem; display: none;" id="tokenOutput">
+					<div class="code-output-wrapper" style="margin-top: 1rem;" id="tokenOutput">
 						<pre class="code-output" id="tokenResult"></pre>
 						<button class="copy-button" id="copyTokenButton">
 							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
@@ -1108,50 +1106,24 @@
 			const useLowercase = document.getElementById('useLowercase');
 			const useNumbers = document.getElementById('useNumbers');
 			const useSpecial = document.getElementById('useSpecial');
-			const generateTokenButton = document.getElementById('generateTokenButton');
 			const tokenOutput = document.getElementById('tokenOutput');
 			const tokenResult = document.getElementById('tokenResult');
 			const copyTokenButton = document.getElementById('copyTokenButton');
 
 			// Синхронизация значений ползунка и числового поля
-			tokenLength.addEventListener('input', () => {
-				tokenLengthRange.value = tokenLength.value;
-			});
-
+			tokenLength.addEventListener('input', generateToken);
 			tokenLengthRange.addEventListener('input', () => {
 				tokenLength.value = tokenLengthRange.value;
+				generateToken();
 			});
 
-			function generateToken(length, options) {
-				const charset = {
-					uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-					lowercase: 'abcdefghijklmnopqrstuvwxyz',
-					numbers: '0123456789',
-					special: '!@#$%^&*'
-				};
+			// Генерация при изменении чекбоксов
+			useUppercase.addEventListener('change', generateToken);
+			useLowercase.addEventListener('change', generateToken);
+			useNumbers.addEventListener('change', generateToken);
+			useSpecial.addEventListener('change', generateToken);
 
-				let availableChars = '';
-				if (options.uppercase) availableChars += charset.uppercase;
-				if (options.lowercase) availableChars += charset.lowercase;
-				if (options.numbers) availableChars += charset.numbers;
-				if (options.special) availableChars += charset.special;
-
-				if (!availableChars) {
-					throw new Error('Выберите хотя бы один набор символов');
-				}
-
-				let result = '';
-				const randomValues = new Uint32Array(length);
-				crypto.getRandomValues(randomValues);
-				
-				for (let i = 0; i < length; i++) {
-					result += availableChars[randomValues[i] % availableChars.length];
-				}
-
-				return result;
-			}
-
-			generateTokenButton.addEventListener('click', () => {
+			function generateToken() {
 				try {
 					const length = parseInt(tokenLength.value);
 					if (length < 1 || length > 128) {
@@ -1165,14 +1137,36 @@
 						special: useSpecial.checked
 					};
 
-					const token = generateToken(length, options);
-					tokenResult.textContent = token;
-					tokenOutput.style.display = 'block';
+					const charset = {
+						uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+						lowercase: 'abcdefghijklmnopqrstuvwxyz',
+						numbers: '0123456789',
+						special: '!@#$%^&*'
+					};
+
+					let availableChars = '';
+					if (options.uppercase) availableChars += charset.uppercase;
+					if (options.lowercase) availableChars += charset.lowercase;
+					if (options.numbers) availableChars += charset.numbers;
+					if (options.special) availableChars += charset.special;
+
+					if (!availableChars) {
+						throw new Error('Выберите хотя бы один набор символов');
+					}
+
+					let result = '';
+					const randomValues = new Uint32Array(length);
+					crypto.getRandomValues(randomValues);
+					
+					for (let i = 0; i < length; i++) {
+						result += availableChars[randomValues[i] % availableChars.length];
+					}
+
+					tokenResult.textContent = result;
 				} catch (error) {
 					tokenResult.textContent = error.message;
-					tokenOutput.style.display = 'block';
 				}
-			});
+			}
 
 			copyTokenButton.addEventListener('click', () => {
 				navigator.clipboard.writeText(tokenResult.textContent)
@@ -1188,6 +1182,9 @@
 						}, 2000);
 					});
 			});
+
+			// Генерируем токен при загрузке страницы
+			generateToken();
 		});
 	</script>
 </body>

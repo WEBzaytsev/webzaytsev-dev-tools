@@ -262,6 +262,79 @@
 				padding: 0 1rem;
 			}
 		}
+
+		/* Стили для Docker конвертера */
+		.code-input {
+			width: 100%;
+			padding: 1rem;
+			font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+			font-size: 0.875rem;
+			line-height: 1.5;
+			border: 1px solid var(--border-color);
+			border-radius: 8px;
+			background: #f8f9fa;
+			resize: vertical;
+			min-height: 100px;
+		}
+
+		.code-input:focus {
+			border-color: var(--primary-color);
+			outline: none;
+		}
+
+		.output-container {
+			margin-top: 2rem;
+		}
+
+		.output-container h3 {
+			font-size: 1.25rem;
+			font-weight: 600;
+			margin-bottom: 1rem;
+		}
+
+		.code-output-wrapper {
+			position: relative;
+			margin-top: 1rem;
+		}
+
+		.code-output {
+			width: 100%;
+			padding: 1rem;
+			background: #f8f9fa;
+			border-radius: 8px;
+			font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+			font-size: 0.875rem;
+			line-height: 1.5;
+			white-space: pre-wrap;
+			margin: 0;
+			border: 1px solid var(--border-color);
+		}
+
+		.copy-button {
+			position: absolute;
+			top: 0.5rem;
+			right: 0.5rem;
+			padding: 0.5rem 1rem;
+			background: white;
+			border: 1px solid var(--border-color);
+			border-radius: 4px;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			font-size: 0.875rem;
+			color: var(--text-color);
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.copy-button:hover {
+			background: #f8f9fa;
+			border-color: var(--text-color);
+		}
+
+		.copy-icon {
+			opacity: 0.7;
+		}
 	</style>
 </head>
 
@@ -312,8 +385,26 @@
 				</div>
 
 				<div class="tab-content" id="hello">
-					<h2>Новый инструмент</h2>
-					<p>Здесь будет размещен новый инструмент</p>
+					<h2>Docker Run в Docker Compose</h2>
+					<div class="input-group">
+						<label for="dockerRunInput">Введите команду Docker Run</label>
+						<textarea id="dockerRunInput" class="code-input" placeholder="docker run -p 80:80 -v /host/path:/container/path nginx" rows="4"></textarea>
+					</div>
+
+					<button id="convertButton">Конвертировать</button>
+
+					<div class="output-container" style="display: none;">
+						<h3>Docker Compose</h3>
+						<div class="code-output-wrapper">
+							<pre id="composeOutput" class="code-output"></pre>
+							<button id="copyComposeButton" class="copy-button">
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -462,6 +553,126 @@
 					});
 			}
 		}
+
+		// Docker конвертер
+		function parseDockerRun(command) {
+			const parts = command.split(' ');
+			let serviceName = 'app';
+			let image = '';
+			const ports = [];
+			const volumes = [];
+			const environment = [];
+			let restart = '';
+			
+			for (let i = 0; i < parts.length; i++) {
+				const part = parts[i];
+				
+				if (part === 'docker' || part === 'run') continue;
+				
+				switch (part) {
+					case '-p':
+					case '--publish':
+						ports.push(parts[++i]);
+						break;
+					case '-v':
+					case '--volume':
+						volumes.push(parts[++i]);
+						break;
+					case '-e':
+					case '--env':
+						environment.push(parts[++i]);
+						break;
+					case '--restart':
+						restart = parts[++i];
+						break;
+					default:
+						if (!part.startsWith('-') && !image) {
+							image = part;
+						}
+				}
+			}
+			
+			return {
+				serviceName,
+				image,
+				ports,
+				volumes,
+				environment,
+				restart
+			};
+		}
+
+		function generateDockerCompose(config) {
+			let compose = 'version: "3.8"\n\nservices:\n';
+			compose += `  ${config.serviceName}:\n`;
+			compose += `    image: ${config.image}\n`;
+			
+			if (config.ports.length) {
+				compose += '    ports:\n';
+				config.ports.forEach(port => {
+					compose += `      - "${port}"\n`;
+				});
+			}
+			
+			if (config.volumes.length) {
+				compose += '    volumes:\n';
+				config.volumes.forEach(volume => {
+					compose += `      - ${volume}\n`;
+				});
+			}
+			
+			if (config.environment.length) {
+				compose += '    environment:\n';
+				config.environment.forEach(env => {
+					compose += `      - ${env}\n`;
+				});
+			}
+			
+			if (config.restart) {
+				compose += `    restart: ${config.restart}\n`;
+			}
+			
+			return compose;
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			const dockerRunInput = document.getElementById('dockerRunInput');
+			const convertButton = document.getElementById('convertButton');
+			const composeOutput = document.getElementById('composeOutput');
+			const outputContainer = document.querySelector('.output-container');
+			const copyComposeButton = document.getElementById('copyComposeButton');
+
+			convertButton.addEventListener('click', () => {
+				const command = dockerRunInput.value.trim();
+				if (!command) return;
+
+				try {
+					const config = parseDockerRun(command);
+					const composeYaml = generateDockerCompose(config);
+					composeOutput.textContent = composeYaml;
+					outputContainer.style.display = 'block';
+				} catch (error) {
+					composeOutput.textContent = 'Ошибка при конвертации команды';
+					outputContainer.style.display = 'block';
+				}
+			});
+
+			copyComposeButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(composeOutput.textContent)
+					.then(() => {
+						const originalText = copyComposeButton.textContent;
+						copyComposeButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyComposeButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
+		});
 	</script>
 </body>
 

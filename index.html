@@ -651,6 +651,56 @@
 			margin: 0;
 			font-weight: 600;
 		}
+
+		/* Стили для радио-кнопок */
+		.radio-group {
+			display: flex;
+			gap: 2rem;
+			margin: 1.5rem 0;
+		}
+
+		.radio-item {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.radio-item input[type="radio"] {
+			width: 1.25rem;
+			height: 1.25rem;
+			margin: 0;
+			cursor: pointer;
+		}
+
+		.radio-item label {
+			margin: 0;
+			cursor: pointer;
+			font-weight: 500;
+		}
+
+		/* Стили для индикатора жёсткости */
+		.range-value {
+			min-width: 3rem;
+			text-align: right;
+			font-weight: 500;
+			color: var(--primary-color);
+		}
+
+		.input-group.range-group {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.input-group.range-group input[type="number"] {
+			width: 80px;
+			flex-shrink: 0;
+		}
+
+		.input-group.range-group input[type="range"] {
+			flex-grow: 1;
+		}
 	</style>
 </head>
 
@@ -815,9 +865,27 @@
 						<input type="range" id="sentenceCountRange" value="5" min="1" max="15">
 					</div>
 
-					<div class="checkbox-group">
+					<div class="input-group range-group">
+						<label for="textHardness">Жёсткость текста</label>
+						<input type="number" id="textHardness" value="30" min="0" max="100">
+						<input type="range" id="textHardnessRange" value="30" min="0" max="100">
+						<span class="range-value">30%</span>
+					</div>
+
+					<div class="checkbox-group" style="margin-bottom: 1rem;">
 						<input type="checkbox" id="startWithLorem" checked>
-						<label for="startWithLorem">Начать с "Lorem ipsum dolor sit amet"</label>
+						<label for="startWithLorem">Начать с классического начала</label>
+					</div>
+
+					<div class="radio-group" style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+						<div class="radio-item">
+							<input type="radio" id="langEn" name="language" value="en" checked>
+							<label for="langEn">Lorem Ipsum</label>
+						</div>
+						<div class="radio-item">
+							<input type="radio" id="langRu" name="language" value="ru">
+							<label for="langRu">Рыбный текст</label>
+						</div>
 					</div>
 
 					<div class="button-group" style="display: flex; gap: 1rem; margin: 1.5rem 0;">
@@ -1567,7 +1635,11 @@
 			const paragraphCountRange = document.getElementById('paragraphCountRange');
 			const sentenceCount = document.getElementById('sentenceCount');
 			const sentenceCountRange = document.getElementById('sentenceCountRange');
+			const textHardness = document.getElementById('textHardness');
+			const textHardnessRange = document.getElementById('textHardnessRange');
 			const startWithLorem = document.getElementById('startWithLorem');
+			const langEn = document.getElementById('langEn');
+			const langRu = document.getElementById('langRu');
 			const generateLorem = document.getElementById('generateLorem');
 			const loremResult = document.getElementById('loremResult');
 			const copyLoremButton = document.getElementById('copyLoremButton');
@@ -1616,7 +1688,7 @@
 			}
 
 			function generateSentence(isFirst) {
-				const wordCount = Math.floor(Math.random() * 8) + 5; // 5-12 слов в предложении
+				const wordCount = Math.floor(Math.random() * 8) + 5;
 				let sentence = [];
 
 				if (isFirst && startWithLorem.checked) {
@@ -1633,9 +1705,13 @@
 			function generateParagraph(isFirst) {
 				const sentences = [];
 				const count = parseInt(sentenceCount.value);
+				const isRussian = langRu.checked;
 
 				for (let i = 0; i < count; i++) {
-					sentences.push(generateSentence(isFirst && i === 0));
+					sentences.push(isRussian ? 
+						generateRuSentence(isFirst && i === 0) : 
+						generateSentence(isFirst && i === 0)
+					);
 				}
 
 				return sentences.join(' ');
@@ -1669,6 +1745,87 @@
 
 			// Генерируем текст при загрузке страницы
 			generateLoremText();
+
+			// Обработчики для жёсткости текста
+			textHardness.addEventListener('input', () => {
+				textHardnessRange.value = textHardness.value;
+				textHardness.nextElementSibling.nextElementSibling.textContent = textHardness.value + '%';
+				generateLoremText();
+			});
+
+			textHardnessRange.addEventListener('input', () => {
+				textHardness.value = textHardnessRange.value;
+				textHardness.nextElementSibling.nextElementSibling.textContent = textHardnessRange.value + '%';
+				generateLoremText();
+			});
+
+			// Обработчики языка
+			langEn.addEventListener('change', generateLoremText);
+			langRu.addEventListener('change', generateLoremText);
+
+			const ruWords = [
+				'далеко', 'далеко', 'за', 'словесными', 'горами', 'в', 'стране', 'гласных', 'и', 'согласных',
+				'живут', 'рыбные', 'тексты', 'вдали', 'от', 'всех', 'они', 'в', 'буквенных', 'домах',
+				'на', 'берегу', 'семантика', 'большого', 'языкового', 'океана', 'маленький', 'ручеек',
+				'даль', 'журчит', 'по', 'всей', 'стране', 'и', 'обеспечивает', 'ее', 'всеми', 'необходимыми',
+				'правилами', 'грамматика'
+			];
+
+			const ruHardPhrases = [
+				'Эта парадигматическая страна, в которой жаренные члены предложения залетают прямо в рот',
+				'Даже всемогущая пунктуация не имеет власти над рыбными текстами',
+				'Однажды одна маленькая строчка рыбного текста по имени Lorem ipsum решила выйти в большой мир грамматики',
+				'Великий Оксмокс предупреждал ее о злых запятых, диких знаках вопроса и коварных точках с запятой',
+				'Но текст не дал сбить себя с толку и наградил его своим предложением',
+				'Грустный риторический вопрос скатился по его щеке, и он продолжил свой путь',
+				'На заголовок горы курсив лежит, его за строчкой употребляемый журчит',
+				'Переписали его несколько раз, пока наконец текст не стал таким, какой он есть',
+				'Встретил рукопись она переписала ее предупредила снова своего все власти',
+				'Семантика большого языкового океана стремительно впадает в небольшую лужицу'
+			];
+
+			const ruClassicStart = 'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты';
+
+			function getRandomRuWord() {
+				return ruWords[Math.floor(Math.random() * ruWords.length)];
+			}
+
+			function generateRuSentence(isFirst) {
+				const hardness = parseInt(textHardness.value);
+				const useHardPhrase = Math.random() * 100 < hardness;
+
+				if (useHardPhrase) {
+					return ruHardPhrases[Math.floor(Math.random() * ruHardPhrases.length)] + '.';
+				}
+
+				if (isFirst && startWithLorem.checked) {
+					return ruClassicStart + '.';
+				}
+
+				const wordCount = Math.floor(Math.random() * 8) + 5;
+				let sentence = [];
+
+				for (let i = 0; i < wordCount; i++) {
+					sentence.push(i === 0 ? capitalizeFirstLetter(getRandomRuWord()) : getRandomRuWord());
+				}
+
+				return sentence.join(' ') + '.';
+			}
+
+			function generateParagraph(isFirst) {
+				const sentences = [];
+				const count = parseInt(sentenceCount.value);
+				const isRussian = langRu.checked;
+
+				for (let i = 0; i < count; i++) {
+					sentences.push(isRussian ? 
+						generateRuSentence(isFirst && i === 0) : 
+						generateSentence(isFirst && i === 0)
+					);
+				}
+
+				return sentences.join(' ');
+			}
 		});
 	</script>
 

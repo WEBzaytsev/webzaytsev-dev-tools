@@ -295,6 +295,9 @@
 		.code-output-wrapper {
 			position: relative;
 			margin-top: 1rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
 		}
 
 		.code-output {
@@ -308,12 +311,12 @@
 			white-space: pre-wrap;
 			margin: 0;
 			border: 1px solid var(--border-color);
+			overflow-x: auto;
 		}
 
 		.copy-button {
-			position: absolute;
-			top: 0.5rem;
-			right: 0.5rem;
+			position: static;
+			align-self: flex-end;
 			padding: 0.5rem 1rem;
 			background: white;
 			border: 1px solid var(--border-color);
@@ -325,6 +328,9 @@
 			color: var(--text-color);
 			cursor: pointer;
 			transition: all 0.2s ease;
+			min-width: 6rem;
+			justify-content: center;
+			margin-bottom: 0.5rem;
 		}
 
 		.copy-button:hover {

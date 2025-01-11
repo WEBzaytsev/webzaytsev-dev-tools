@@ -443,6 +443,63 @@
 			opacity: 0.5;
 			cursor: not-allowed;
 		}
+
+		/* Стили для страницы О проекте */
+		.about-content {
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
+		.about-description {
+			font-size: 1.1rem;
+			line-height: 1.6;
+			color: var(--text-color);
+			margin-bottom: 2rem;
+		}
+
+		.tool-card {
+			background: #f8f9fa;
+			border: 1px solid var(--border-color);
+			border-radius: 8px;
+			padding: 1.5rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.tool-card h4 {
+			font-size: 1.2rem;
+			font-weight: 600;
+			margin-bottom: 1rem;
+			color: var(--primary-color);
+		}
+
+		.tool-card p {
+			margin-bottom: 1rem;
+		}
+
+		.tool-card ul {
+			list-style-type: none;
+			padding: 0;
+		}
+
+		.tool-card ul li {
+			position: relative;
+			padding-left: 1.5rem;
+			margin-bottom: 0.5rem;
+		}
+
+		.tool-card ul li::before {
+			content: "•";
+			color: var(--primary-color);
+			position: absolute;
+			left: 0.5rem;
+		}
+
+		h3 {
+			font-size: 1.4rem;
+			font-weight: 600;
+			margin: 2rem 0 1.5rem;
+			color: var(--text-color);
+		}
 	</style>
 </head>
 
@@ -582,6 +639,48 @@
 						</button>
 					</div>
 				</div>
+
+				<div class="tab-content" id="about">
+					<h2>О проекте Dev Tools</h2>
+					
+					<div class="about-content">
+						<p class="about-description">
+							Dev Tools - это набор полезных инструментов для разработчиков, которые помогают автоматизировать рутинные задачи и упростить процесс разработки.
+						</p>
+
+						<h3>Доступные инструменты:</h3>
+						
+						<div class="tool-card">
+							<h4>Генератор портов</h4>
+							<p>Автоматически генерирует свободные порты для ваших приложений. Поддерживает:</p>
+							<ul>
+								<li>Генерацию одиночных портов</li>
+								<li>Генерацию диапазонов портов</li>
+								<li>Запоминание использованных портов</li>
+							</ul>
+						</div>
+
+						<div class="tool-card">
+							<h4>Docker Run в Docker Compose</h4>
+							<p>Конвертирует команды Docker Run в формат Docker Compose. Возможности:</p>
+							<ul>
+								<li>Поддержка всех основных параметров Docker</li>
+								<li>Уведомления о неподдерживаемых опциях</li>
+								<li>Экспорт в docker-compose.yml</li>
+							</ul>
+						</div>
+
+						<div class="tool-card">
+							<h4>Генератор токенов</h4>
+							<p>Создает криптографически стойкие токены. Особенности:</p>
+							<ul>
+								<li>Настраиваемая длина токена</li>
+								<li>Выбор наборов символов</li>
+								<li>Мгновенная генерация</li>
+							</ul>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</main>
@@ -630,6 +729,29 @@
 					button.classList.add('active');
 					const tabId = button.getAttribute('data-tab');
 					document.getElementById(tabId).classList.add('active');
+				});
+			});
+
+			// Обработчик для навигационных ссылок
+			const navLinks = document.querySelectorAll('.nav-link');
+			navLinks.forEach(link => {
+				link.addEventListener('click', (e) => {
+					e.preventDefault();
+					navLinks.forEach(l => l.classList.remove('active'));
+					link.classList.add('active');
+
+					// Скрываем все вкладки
+					tabContents.forEach(content => content.classList.remove('active'));
+					tabButtons.forEach(btn => btn.classList.remove('active'));
+
+					if (link.textContent === 'О проекте') {
+						// Активируем вкладку "О проекте"
+						document.getElementById('about').classList.add('active');
+					} else if (link.textContent === 'Инструменты') {
+						// Возвращаемся к первой вкладке
+						tabButtons[0].classList.add('active');
+						document.getElementById('ports').classList.add('active');
+					}
 				});
 			});
 		});

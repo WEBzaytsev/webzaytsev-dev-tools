@@ -904,6 +904,18 @@
 			}
 		}
 
+		function downloadYamlFile(content) {
+			const blob = new Blob([content], { type: 'application/yaml' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'docker-compose.yml';
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		}
+
 		document.addEventListener('DOMContentLoaded', () => {
 			const dockerRunInput = document.getElementById('dockerRunInput');
 			const convertButton = document.getElementById('convertButton');

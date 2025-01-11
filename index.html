@@ -413,7 +413,8 @@
 			<div class="tabs">
 				<div class="tab-buttons">
 					<button class="tab-button active" data-tab="ports">Порты</button>
-					<button class="tab-button" data-tab="hello">Hello</button>
+					<button class="tab-button" data-tab="hello">Docker</button>
+					<button class="tab-button" data-tab="tokens">Токены</button>
 				</div>
 
 				<div class="tab-content active" id="ports">
@@ -484,6 +485,46 @@
 					<div id="errorAlert" class="alert error" style="display: none; margin-top: 1rem;">
 						<h4>Произошли следующие ошибки</h4>
 						<ul id="errorList"></ul>
+					</div>
+				</div>
+
+				<div class="tab-content" id="tokens">
+					<h2>Генератор токенов</h2>
+					<div class="input-group">
+						<label for="tokenLength">Длина токена</label>
+						<input type="number" id="tokenLength" value="32" min="1" max="128">
+					</div>
+
+					<div class="checkbox-group">
+						<input type="checkbox" id="useUppercase" checked>
+						<label for="useUppercase">Прописные буквы (A-Z)</label>
+					</div>
+
+					<div class="checkbox-group">
+						<input type="checkbox" id="useLowercase" checked>
+						<label for="useLowercase">Строчные буквы (a-z)</label>
+					</div>
+
+					<div class="checkbox-group">
+						<input type="checkbox" id="useNumbers" checked>
+						<label for="useNumbers">Цифры (0-9)</label>
+					</div>
+
+					<div class="checkbox-group">
+						<input type="checkbox" id="useSpecial">
+						<label for="useSpecial">Специальные символы (!@#$%^&*)</label>
+					</div>
+
+					<button id="generateTokenButton">Сгенерировать токен</button>
+
+					<div class="code-output-wrapper" style="margin-top: 1rem; display: none;" id="tokenOutput">
+						<pre class="code-output" id="tokenResult"></pre>
+						<button class="copy-button" id="copyTokenButton">
+							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+							</svg>
+							Копировать
+						</button>
 					</div>
 				</div>
 			</div>
@@ -1008,6 +1049,86 @@
 				if (composeOutput.textContent) {
 					downloadYamlFile(composeOutput.textContent);
 				}
+			});
+		});
+
+		// Генератор токенов
+		document.addEventListener('DOMContentLoaded', () => {
+			const tokenLength = document.getElementById('tokenLength');
+			const useUppercase = document.getElementById('useUppercase');
+			const useLowercase = document.getElementById('useLowercase');
+			const useNumbers = document.getElementById('useNumbers');
+			const useSpecial = document.getElementById('useSpecial');
+			const generateTokenButton = document.getElementById('generateTokenButton');
+			const tokenOutput = document.getElementById('tokenOutput');
+			const tokenResult = document.getElementById('tokenResult');
+			const copyTokenButton = document.getElementById('copyTokenButton');
+
+			function generateToken(length, options) {
+				const charset = {
+					uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+					lowercase: 'abcdefghijklmnopqrstuvwxyz',
+					numbers: '0123456789',
+					special: '!@#$%^&*'
+				};
+
+				let availableChars = '';
+				if (options.uppercase) availableChars += charset.uppercase;
+				if (options.lowercase) availableChars += charset.lowercase;
+				if (options.numbers) availableChars += charset.numbers;
+				if (options.special) availableChars += charset.special;
+
+				if (!availableChars) {
+					throw new Error('Выберите хотя бы один набор символов');
+				}
+
+				let result = '';
+				const randomValues = new Uint32Array(length);
+				crypto.getRandomValues(randomValues);
+				
+				for (let i = 0; i < length; i++) {
+					result += availableChars[randomValues[i] % availableChars.length];
+				}
+
+				return result;
+			}
+
+			generateTokenButton.addEventListener('click', () => {
+				try {
+					const length = parseInt(tokenLength.value);
+					if (length < 1 || length > 128) {
+						throw new Error('Длина токена должна быть от 1 до 128 символов');
+					}
+
+					const options = {
+						uppercase: useUppercase.checked,
+						lowercase: useLowercase.checked,
+						numbers: useNumbers.checked,
+						special: useSpecial.checked
+					};
+
+					const token = generateToken(length, options);
+					tokenResult.textContent = token;
+					tokenOutput.style.display = 'block';
+				} catch (error) {
+					tokenResult.textContent = error.message;
+					tokenOutput.style.display = 'block';
+				}
+			});
+
+			copyTokenButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(tokenResult.textContent)
+					.then(() => {
+						copyTokenButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyTokenButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
 			});
 		});
 	</script>

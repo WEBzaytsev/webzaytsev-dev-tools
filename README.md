@@ -1,5 +1,8 @@
 # Dev Tools
 
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fport.zaitsv.dev)](https://port.zaitsv.dev)
+[![GitHub repo](https://img.shields.io/badge/github-webzaytsev--dev--tools-blue?logo=github)](https://github.com/WEBzaytsev/webzaytsev-dev-tools)
+
 Набор полезных инструментов для разработчиков, помогающих автоматизировать рутинные задачи.
 
 ## 🛠 Доступные инструменты
@@ -34,7 +37,7 @@
 
 ## 🚀 Использование
 
-1. Откройте [Dev Tools](https://webzaytsev.github.io/webzaytsev-dev-tools/)
+1. Откройте [Dev Tools](https://port.zaitsv.dev/)
 2. Выберите нужный инструмент во вкладках
 3. Следуйте инструкциям на экране
 
@@ -53,6 +56,12 @@
 - JavaScript (Vanilla JS)
 - LocalStorage для сохранения данных
 - Web Crypto API для генерации токенов
+- SEO оптимизация:
+  - Open Graph для социальных сетей
+  - Twitter Cards для Twitter
+  - Мета-теги для поисковых систем
+  - Web App Manifest для PWA
+  - Favicon для всех устройств
 
 ## 📝 Лицензия
 

@@ -733,23 +733,6 @@
 
 		/* Добавляем новые медиа-запросы для мобильных устройств */
 		@media (max-width: 768px) {
-			.nav-menu {
-				display: none;
-				position: fixed;
-				top: var(--header-height);
-				left: 0;
-				right: 0;
-				background: var(--nav-bg);
-				padding: 1rem;
-				flex-direction: column;
-				gap: 1rem;
-				border-bottom: 1px solid var(--border-color);
-			}
-
-			.nav-menu.active {
-				display: flex;
-			}
-
 			.nav-brand {
 				font-size: 1.1rem;
 			}
@@ -860,6 +843,77 @@
 				display: block !important;
 			}
 		}
+
+		/* Обновляем стили для навигации */
+		.nav-right {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		.menu-toggle {
+			display: none;
+			background: none;
+			border: none;
+			padding: 0.5rem;
+			cursor: pointer;
+			color: var(--text-color);
+			width: 40px;
+			height: 40px;
+			border-radius: 8px;
+			transition: all 0.2s ease;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.menu-toggle:hover {
+			background: rgba(0, 0, 0, 0.05);
+		}
+
+		.menu-toggle:active {
+			background: rgba(0, 0, 0, 0.1);
+		}
+
+		.menu-toggle svg {
+			width: 24px;
+			height: 24px;
+		}
+
+		@media (max-width: 768px) {
+			.menu-toggle {
+				display: flex;
+			}
+
+			.nav-menu {
+				display: none;
+				position: fixed;
+				top: var(--header-height);
+				left: 0;
+				right: 0;
+				background: var(--nav-bg);
+				padding: 1rem;
+				flex-direction: column;
+				gap: 1rem;
+				border-bottom: 1px solid var(--border-color);
+			}
+
+			.nav-menu.active {
+				display: flex;
+			}
+
+			.nav-right {
+				gap: 0.5rem;
+			}
+
+			.suggest-feature {
+				padding: 0.4rem 0.8rem !important;
+				font-size: 0.9rem;
+			}
+
+			.suggest-feature svg {
+				display: none;
+			}
+		}
 	</style>
 </head>
 
@@ -867,23 +921,25 @@
 	<nav class="nav">
 		<div class="nav-left">
 			<a href="#" class="nav-brand">Dev Tools</a>
-			<button class="menu-toggle" style="display: none;">
-				<svg viewBox="0 0 24 24" width="24" height="24">
-					<path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-				</svg>
-			</button>
 			<ul class="nav-menu">
 				<li><a href="#" class="nav-link active">Инструменты</a></li>
 				<li><a href="#" class="nav-link">О проекте</a></li>
 				<li><a href="https://github.com/WEBzaytsev/webzaytsev-dev-tools" class="nav-link" target="_blank">GitHub</a></li>
 			</ul>
 		</div>
-		<a href="#" class="suggest-feature">
-			<svg viewBox="0 0 24 24">
-				<path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-			</svg>
-			Предложить функцию
-		</a>
+		<div class="nav-right">
+			<a href="#" class="suggest-feature">
+				<svg viewBox="0 0 24 24">
+					<path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+				</svg>
+				Предложить функцию
+			</a>
+			<button class="menu-toggle">
+				<svg viewBox="0 0 24 24" width="24" height="24">
+					<path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+				</svg>
+			</button>
+		</div>
 	</nav>
 
 	<main class="main">
@@ -2077,13 +2133,14 @@
 			const menuToggle = document.querySelector('.menu-toggle');
 			const navMenu = document.querySelector('.nav-menu');
 
-			menuToggle.addEventListener('click', () => {
+			menuToggle.addEventListener('click', (e) => {
+				e.stopPropagation(); // Предотвращаем всплытие события
 				navMenu.classList.toggle('active');
 			});
 
 			// Закрываем меню при клике вне его
 			document.addEventListener('click', (e) => {
-				if (!e.target.closest('.nav-left') && navMenu.classList.contains('active')) {
+				if (!e.target.closest('.nav-menu') && !e.target.closest('.menu-toggle') && navMenu.classList.contains('active')) {
 					navMenu.classList.remove('active');
 				}
 			});

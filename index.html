@@ -833,29 +833,6 @@
 			background: none;
 			border: none;
 			padding: 0.5rem;
-			margin-left: 1rem;
-			cursor: pointer;
-			color: var(--text-color);
-		}
-
-		@media (max-width: 768px) {
-			.menu-toggle {
-				display: block !important;
-			}
-		}
-
-		/* Обновляем стили для навигации */
-		.nav-right {
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-		}
-
-		.menu-toggle {
-			display: none;
-			background: none;
-			border: none;
-			padding: 0.5rem;
 			cursor: pointer;
 			color: var(--text-color);
 			width: 40px;
@@ -879,6 +856,14 @@
 			height: 24px;
 		}
 
+		/* Навигация */
+		.nav-right {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		/* Медиа-запросы */
 		@media (max-width: 768px) {
 			.menu-toggle {
 				display: flex;
@@ -905,6 +890,10 @@
 				gap: 0.5rem;
 			}
 
+			.nav-brand {
+				font-size: 1.1rem;
+			}
+
 			.suggest-feature {
 				padding: 0.4rem 0.8rem !important;
 				font-size: 0.9rem;
@@ -912,6 +901,96 @@
 
 			.suggest-feature svg {
 				display: none;
+			}
+
+			.tab-buttons {
+				flex-wrap: wrap;
+				gap: 1rem;
+			}
+
+			.tab-button {
+				min-width: auto;
+				padding: 0.75rem 0;
+				font-size: 0.9rem;
+			}
+
+			.input-group.range-group {
+				flex-wrap: wrap;
+			}
+
+			.input-group.range-group input[type="number"] {
+				width: 100%;
+				margin-bottom: 0.5rem;
+			}
+
+			.radio-group {
+				flex-direction: column;
+				gap: 1rem;
+			}
+
+			.modal-content {
+				padding: 1.5rem;
+				width: 95%;
+			}
+
+			.feature-textarea {
+				height: 200px;
+				padding: 1rem;
+				font-size: 1rem;
+			}
+
+			h2 {
+				font-size: 1.5rem;
+			}
+
+			.code-input {
+				font-size: 0.8rem;
+			}
+
+			.code-output {
+				font-size: 0.8rem;
+				padding: 0.75rem;
+			}
+
+			.button-group {
+				flex-direction: column;
+			}
+
+			.secondary-button {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.container {
+				padding: 1.5rem;
+			}
+			
+			.nav {
+				padding: 0 1rem;
+			}
+		}
+
+		@media (max-width: 360px) {
+			.nav-brand {
+				font-size: 1rem;
+			}
+
+			.suggest-feature {
+				font-size: 0.8rem;
+				padding: 0.3rem 0.6rem !important;
+			}
+
+			.tab-button {
+				font-size: 0.8rem;
+			}
+
+			h2 {
+				font-size: 1.3rem;
+			}
+
+			.container {
+				padding: 1rem;
 			}
 		}
 	</style>
@@ -1190,54 +1269,70 @@
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://unpkg.com/composerize-ts@2.0.0/dist/index.js"></script>
 	<script>
+		// DOM Elements
+		let minPortInput, maxPortInput, rangeCheckbox, rangeField, rangeInput, resultElement, generateButton, copyButton, notificationElement;
+		let tokenLength, tokenLengthRange, useUppercase, useLowercase, useNumbers, useSpecial, regenerateToken, tokenResult, copyTokenButton;
+		let paragraphCount, paragraphCountRange, sentenceCount, sentenceCountRange, textHardness, textHardnessRange, startWithLorem, langEn, langRu, generateLorem, loremResult, copyLoremButton;
+
+		// Основные константы
 		const DEFAULT_MIN_PORT = 10024;
 		const DEFAULT_MAX_PORT = 60000;
 		const usedPortsKey = 'usedPorts';
 
-		// DOM Elements
-		const minPortInput = document.getElementById('minPortInput');
-		const maxPortInput = document.getElementById('maxPortInput');
-		const rangeCheckbox = document.getElementById('rangeCheckbox');
-		const rangeField = document.getElementById('rangeField');
-		const rangeInput = document.getElementById('rangeInput');
-		const resultElement = document.getElementById('result');
-		const generateButton = document.getElementById('generateButton');
-		const copyButton = document.getElementById('copyButton');
-		const notificationElement = document.getElementById('notification');
-
-		// Event Listeners
+		// Добавляем обработчик для мобильного меню
 		document.addEventListener('DOMContentLoaded', () => {
-			rangeCheckbox.addEventListener('change', () => {
-				rangeField.style.display = rangeCheckbox.checked ? 'block' : 'none';
-			});
+			// Инициализация DOM элементов
+			minPortInput = document.getElementById('minPortInput');
+			maxPortInput = document.getElementById('maxPortInput');
+			rangeCheckbox = document.getElementById('rangeCheckbox');
+			rangeField = document.getElementById('rangeField');
+			rangeInput = document.getElementById('rangeInput');
+			resultElement = document.getElementById('result');
+			generateButton = document.getElementById('generateButton');
+			copyButton = document.getElementById('copyButton');
+			notificationElement = document.getElementById('notification');
 
-			generateButton.addEventListener('click', generatePort);
-			copyButton.addEventListener('click', copyToClipboard);
+			tokenLength = document.getElementById('tokenLength');
+			tokenLengthRange = document.getElementById('tokenLengthRange');
+			useUppercase = document.getElementById('useUppercase');
+			useLowercase = document.getElementById('useLowercase');
+			useNumbers = document.getElementById('useNumbers');
+			useSpecial = document.getElementById('useSpecial');
+			regenerateToken = document.getElementById('regenerateToken');
+			tokenResult = document.getElementById('tokenResult');
+			copyTokenButton = document.getElementById('copyTokenButton');
 
-			copyButton.style.display = 'none';
-			notificationElement.style.display = 'none';
+			paragraphCount = document.getElementById('paragraphCount');
+			paragraphCountRange = document.getElementById('paragraphCountRange');
+			sentenceCount = document.getElementById('sentenceCount');
+			sentenceCountRange = document.getElementById('sentenceCountRange');
+			textHardness = document.getElementById('textHardness');
+			textHardnessRange = document.getElementById('textHardnessRange');
+			startWithLorem = document.getElementById('startWithLorem');
+			langEn = document.getElementById('langEn');
+			langRu = document.getElementById('langRu');
+			generateLorem = document.getElementById('generateLorem');
+			loremResult = document.getElementById('loremResult');
+			copyLoremButton = document.getElementById('copyLoremButton');
 
+			// Инициализация переключения вкладок
 			const tabButtons = document.querySelectorAll('.tab-button');
 			const tabContents = document.querySelectorAll('.tab-content');
+			const navLinks = document.querySelectorAll('.nav-link');
 
 			tabButtons.forEach(button => {
 				button.addEventListener('click', () => {
-					// Удаляем активный класс у всех кнопок и контента
 					tabButtons.forEach(btn => btn.classList.remove('active'));
 					tabContents.forEach(content => content.classList.remove('active'));
 
-					// Добавляем активный класс к выбранной вкладке
 					button.classList.add('active');
 					const tabId = button.getAttribute('data-tab');
 					document.getElementById(tabId).classList.add('active');
 				});
 			});
 
-			// Обработчик для навигационных ссылок
-			const navLinks = document.querySelectorAll('.nav-link');
 			navLinks.forEach(link => {
 				link.addEventListener('click', (e) => {
-					// Пропускаем обработку для ссылки на GitHub
 					if (link.getAttribute('href').includes('github.com')) {
 						return;
 					}
@@ -1246,23 +1341,312 @@
 					navLinks.forEach(l => l.classList.remove('active'));
 					link.classList.add('active');
 
-					// Скрываем все вкладки
 					tabContents.forEach(content => content.classList.remove('active'));
 					tabButtons.forEach(btn => btn.classList.remove('active'));
 
 					if (link.textContent === 'О проекте') {
-						// Активируем вкладку "О проекте"
 						document.getElementById('about').classList.add('active');
 					} else if (link.textContent === 'Инструменты') {
-						// Возвращаемся к первой вкладке
 						tabButtons[0].classList.add('active');
 						document.getElementById('ports').classList.add('active');
 					}
 				});
 			});
+
+			// Инициализация мобильного меню
+			const menuToggle = document.querySelector('.menu-toggle');
+			const navMenu = document.querySelector('.nav-menu');
+
+			menuToggle.addEventListener('click', (e) => {
+				e.stopPropagation();
+				navMenu.classList.toggle('active');
+			});
+
+			document.addEventListener('click', (e) => {
+				if (!e.target.closest('.nav-menu') && !e.target.closest('.menu-toggle') && navMenu.classList.contains('active')) {
+					navMenu.classList.remove('active');
+				}
+			});
+
+			navMenu.querySelectorAll('.nav-link').forEach(link => {
+				link.addEventListener('click', () => {
+					navMenu.classList.remove('active');
+				});
+			});
+
+			// Инициализация генератора портов
+			rangeCheckbox.addEventListener('change', () => {
+				rangeField.style.display = rangeCheckbox.checked ? 'block' : 'none';
+			});
+
+			generateButton.addEventListener('click', generatePort);
+			copyButton.addEventListener('click', copyToClipboard);
+
+			// Инициализация генератора токенов
+			tokenLength.addEventListener('input', () => {
+				tokenLengthRange.value = tokenLength.value;
+				generateToken();
+			});
+
+			tokenLengthRange.addEventListener('input', () => {
+				tokenLength.value = tokenLengthRange.value;
+				generateToken();
+			});
+
+			useUppercase.addEventListener('change', generateToken);
+			useLowercase.addEventListener('change', generateToken);
+			useNumbers.addEventListener('change', generateToken);
+			useSpecial.addEventListener('change', generateToken);
+			regenerateToken.addEventListener('click', generateToken);
+
+			// Инициализация генератора Lorem Ipsum
+			paragraphCount.addEventListener('input', () => {
+				paragraphCountRange.value = paragraphCount.value;
+				generateLoremText();
+			});
+
+			paragraphCountRange.addEventListener('input', () => {
+				paragraphCount.value = paragraphCountRange.value;
+				generateLoremText();
+			});
+
+			sentenceCount.addEventListener('input', () => {
+				sentenceCountRange.value = sentenceCount.value;
+				generateLoremText();
+			});
+
+			sentenceCountRange.addEventListener('input', () => {
+				sentenceCount.value = sentenceCountRange.value;
+				generateLoremText();
+			});
+
+			textHardness.addEventListener('input', () => {
+				textHardnessRange.value = textHardness.value;
+				textHardness.nextElementSibling.nextElementSibling.textContent = textHardness.value + '%';
+				generateLoremText();
+			});
+
+			textHardnessRange.addEventListener('input', () => {
+				textHardness.value = textHardnessRange.value;
+				textHardness.nextElementSibling.nextElementSibling.textContent = textHardnessRange.value + '%';
+				generateLoremText();
+			});
+
+			startWithLorem.addEventListener('change', generateLoremText);
+			langEn.addEventListener('change', generateLoremText);
+			langRu.addEventListener('change', generateLoremText);
+			generateLorem.addEventListener('click', generateLoremText);
+
+			// Обработчики копирования
+			copyTokenButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(tokenResult.textContent)
+					.then(() => {
+						copyTokenButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyTokenButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
+
+			copyLoremButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(loremResult.textContent)
+					.then(() => {
+						copyLoremButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyLoremButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
+
+			// Функции для Docker конвертера
+			function parseDockerRun(command) {
+				const parts = command.split(' ');
+				if (parts[0] !== 'docker' || parts[1] !== 'run') {
+					throw new Error('Команда должна начинаться с "docker run"');
+				}
+
+				const result = {
+					image: '',
+					ports: [],
+					volumes: [],
+					environment: [],
+					restart: '',
+					name: '',
+					network: '',
+					command: []
+				};
+
+				let i = 2;
+				while (i < parts.length) {
+					switch (parts[i]) {
+						case '-p':
+						case '--publish':
+							result.ports.push(parts[++i]);
+							break;
+						case '-v':
+						case '--volume':
+							result.volumes.push(parts[++i]);
+							break;
+						case '-e':
+						case '--env':
+							result.environment.push(parts[++i]);
+							break;
+						case '--restart':
+							result.restart = parts[++i];
+							break;
+						case '--name':
+							result.name = parts[++i];
+							break;
+						case '--network':
+							result.network = parts[++i];
+							break;
+						default:
+							if (parts[i].startsWith('-')) {
+								i++; // Пропускаем значение неподдерживаемой опции
+							} else {
+								if (!result.image) {
+									result.image = parts[i];
+								} else {
+									result.command.push(parts[i]);
+								}
+							}
+					}
+					i++;
+				}
+
+				return result;
+			}
+
+			function convertToCompose() {
+				const dockerRunInput = document.getElementById('dockerRunInput');
+				const composeOutput = document.getElementById('composeOutput');
+				const outputContainer = document.querySelector('.output-container');
+				const errorAlert = document.getElementById('errorAlert');
+				const errorList = document.getElementById('errorList');
+
+				// Очищаем предыдущие сообщения
+				errorList.innerHTML = '';
+				errorAlert.style.display = 'none';
+
+				try {
+					const command = dockerRunInput.value.trim();
+					if (!command) {
+						throw new Error('Пожалуйста, введите команду docker run');
+					}
+
+					const config = parseDockerRun(command);
+					let composeYaml = 'version: "3"\n\nservices:\n';
+					
+					// Используем имя контейнера или генерируем из образа
+					const serviceName = config.name || config.image.replace(/[^a-zA-Z0-9]/g, '-');
+					composeYaml += `  ${serviceName}:\n`;
+					composeYaml += `    image: ${config.image}\n`;
+
+					if (config.restart) {
+						composeYaml += `    restart: ${config.restart}\n`;
+					}
+
+					if (config.ports.length > 0) {
+						composeYaml += '    ports:\n';
+						config.ports.forEach(port => {
+							composeYaml += `      - "${port}"\n`;
+						});
+					}
+
+					if (config.volumes.length > 0) {
+						composeYaml += '    volumes:\n';
+						config.volumes.forEach(volume => {
+							composeYaml += `      - ${volume}\n`;
+						});
+					}
+
+					if (config.environment.length > 0) {
+						composeYaml += '    environment:\n';
+						config.environment.forEach(env => {
+							const [key, value] = env.split('=');
+							composeYaml += `      - ${key}=${value}\n`;
+						});
+					}
+
+					if (config.network) {
+						composeYaml += '    networks:\n';
+						composeYaml += `      - ${config.network}\n`;
+					}
+
+					if (config.command.length > 0) {
+						composeYaml += `    command: ${config.command.join(' ')}\n`;
+					}
+
+					if (config.network) {
+						composeYaml += '\nnetworks:\n';
+						composeYaml += `  ${config.network}:\n`;
+						composeYaml += '    external: true\n';
+					}
+
+					composeOutput.textContent = composeYaml;
+					outputContainer.style.display = 'block';
+
+				} catch (error) {
+					errorList.innerHTML = `<li>${error.message}</li>`;
+					errorAlert.style.display = 'block';
+					outputContainer.style.display = 'none';
+				}
+			}
+
+			function downloadCompose() {
+				const composeContent = document.getElementById('composeOutput').textContent;
+				const blob = new Blob([composeContent], { type: 'text/yaml' });
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = 'docker-compose.yml';
+				document.body.appendChild(a);
+				a.click();
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a);
+			}
+
+			// Инициализация Docker конвертера
+			const convertButton = document.getElementById('convertButton');
+			const copyComposeButton = document.getElementById('copyComposeButton');
+			const downloadButton = document.getElementById('downloadButton');
+
+			convertButton.addEventListener('click', convertToCompose);
+			
+			copyComposeButton.addEventListener('click', () => {
+				const composeOutput = document.getElementById('composeOutput');
+				navigator.clipboard.writeText(composeOutput.textContent)
+					.then(() => {
+						copyComposeButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyComposeButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
+
+			downloadButton.addEventListener('click', downloadCompose);
+
+			// Генерируем начальные значения
+			generateToken();
+			generateLoremText();
 		});
 
-		// Port Management Functions
+		// Функции для генератора портов
 		function loadUsedPorts() {
 			const usedPortsJson = localStorage.getItem(usedPortsKey);
 			return usedPortsJson ? new Set(JSON.parse(usedPortsJson)) : new Set();
@@ -1274,7 +1658,7 @@
 
 		function generateUniqueStartPort(usedPorts, increment, minPort, maxPort) {
 			let attempts = 0;
-			const maxAttempts = 1000; // Предотвращение бесконечного цикла
+			const maxAttempts = 1000;
 
 			while (attempts < maxAttempts) {
 				const startPort = Math.floor(Math.random() * (maxPort - minPort - increment + 1)) + minPort;
@@ -1359,799 +1743,171 @@
 			}
 		}
 
-		// Docker конвертер
-		const DockerCommandParser = {
-			MessageType: {
-				notImplemented: 'notImplemented',
-				notTranslatable: 'notTranslatable',
-				errorDuringConversion: 'errorDuringConversion'
-			},
-
-			parseCommand(command) {
-				const tokens = this.tokenize(command);
-				const options = this.parseOptions(tokens);
-				return this.generateCompose(options);
-			},
-
-			tokenize(command) {
-				return command
-					.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g)
-					.map(token => token.replace(/^["']|["']$/g, ''));
-			},
-
-			parseOptions(tokens) {
-				const options = {
-					image: '',
-					ports: [],
-					volumes: [],
-					environment: [],
-					restart: '',
-					name: '',
-					network: '',
-					workdir: '',
-					user: '',
-					command: [],
-					entrypoint: [],
-					labels: [],
-					links: [],
-					capAdd: [],
-					capDrop: [],
-					devices: [],
-					dns: [],
-					expose: [],
-					extraHosts: [],
-					logOpt: {},
-					messages: []
-				};
-
-				for (let i = 0; i < tokens.length; i++) {
-					const token = tokens[i];
-					
-					if (token === 'docker' || token === 'run') continue;
-
-					switch (token) {
-						case '-p':
-						case '--publish':
-							options.ports.push(tokens[++i]);
-							break;
-						case '-v':
-						case '--volume':
-							options.volumes.push(tokens[++i]);
-							break;
-						case '-e':
-						case '--env':
-							options.environment.push(tokens[++i]);
-							break;
-						case '--restart':
-							options.restart = tokens[++i];
-							break;
-						case '--name':
-							options.name = tokens[++i];
-							break;
-						case '--network':
-							options.network = tokens[++i];
-							break;
-						case '-w':
-						case '--workdir':
-							options.workdir = tokens[++i];
-							break;
-						case '-u':
-						case '--user':
-							options.user = tokens[++i];
-							break;
-						case '--entrypoint':
-							options.entrypoint = [tokens[++i]];
-							break;
-						case '--log-opt':
-							const [key, value] = tokens[++i].split('=');
-							options.logOpt[key] = value;
-							break;
-						case '--cap-add':
-							options.capAdd.push(tokens[++i]);
-							break;
-						case '--cap-drop':
-							options.capDrop.push(tokens[++i]);
-							break;
-						case '--device':
-							options.devices.push(tokens[++i]);
-							break;
-						case '--dns':
-							options.dns.push(tokens[++i]);
-							break;
-						case '--expose':
-							options.expose.push(tokens[++i]);
-							break;
-						case '--add-host':
-							options.extraHosts.push(tokens[++i]);
-							break;
-						case '--label':
-						case '-l':
-							options.labels.push(tokens[++i]);
-							break;
-						case '--link':
-							options.links.push(tokens[++i]);
-							break;
-						default:
-							if (!token.startsWith('-') && !options.image) {
-								options.image = token;
-							} else if (!token.startsWith('-')) {
-								options.command.push(token);
-							} else {
-								options.messages.push({
-									type: this.MessageType.notImplemented,
-									value: `Опция ${token} не реализована`
-								});
-							}
-					}
-				}
-
-				return options;
-			},
-
-			generateCompose(options) {
-				let yaml = 'version: "3.8"\n\nservices:\n';
-				const serviceName = options.name || 'app';
-				yaml += `  ${serviceName}:\n`;
-
-				// Обязательные поля
-				yaml += `    image: ${options.image}\n`;
-
-				// Опциональные поля
-				if (options.ports.length) {
-					yaml += '    ports:\n';
-					options.ports.forEach(port => {
-						yaml += `      - "${port}"\n`;
-					});
-				}
-
-				if (options.volumes.length) {
-					yaml += '    volumes:\n';
-					options.volumes.forEach(volume => {
-						yaml += `      - ${volume}\n`;
-					});
-				}
-
-				if (options.environment.length) {
-					yaml += '    environment:\n';
-					options.environment.forEach(env => {
-						yaml += `      - ${env}\n`;
-					});
-				}
-
-				if (options.restart) {
-					yaml += `    restart: ${options.restart}\n`;
-				}
-
-				if (options.network) {
-					yaml += `    networks:\n      - ${options.network}\n`;
-				}
-
-				if (options.workdir) {
-					yaml += `    working_dir: ${options.workdir}\n`;
-				}
-
-				if (options.user) {
-					yaml += `    user: ${options.user}\n`;
-				}
-
-				if (options.command.length) {
-					yaml += `    command: ${options.command.join(' ')}\n`;
-				}
-
-				if (options.entrypoint.length) {
-					yaml += `    entrypoint: ${options.entrypoint[0]}\n`;
-				}
-
-				if (Object.keys(options.logOpt).length) {
-					yaml += '    logging:\n      options:\n';
-					for (const [key, value] of Object.entries(options.logOpt)) {
-						yaml += `        ${key}: ${value}\n`;
-					}
-				}
-
-				if (options.capAdd.length) {
-					yaml += '    cap_add:\n';
-					options.capAdd.forEach(cap => {
-						yaml += `      - ${cap}\n`;
-					});
-				}
-
-				if (options.capDrop.length) {
-					yaml += '    cap_drop:\n';
-					options.capDrop.forEach(cap => {
-						yaml += `      - ${cap}\n`;
-					});
-				}
-
-				if (options.devices.length) {
-					yaml += '    devices:\n';
-					options.devices.forEach(device => {
-						yaml += `      - ${device}\n`;
-					});
-				}
-
-				if (options.dns.length) {
-					yaml += '    dns:\n';
-					options.dns.forEach(dns => {
-						yaml += `      - ${dns}\n`;
-					});
-				}
-
-				if (options.expose.length) {
-					yaml += '    expose:\n';
-					options.expose.forEach(port => {
-						yaml += `      - "${port}"\n`;
-					});
-				}
-
-				if (options.extraHosts.length) {
-					yaml += '    extra_hosts:\n';
-					options.extraHosts.forEach(host => {
-						yaml += `      - ${host}\n`;
-					});
-				}
-
-				if (options.labels.length) {
-					yaml += '    labels:\n';
-					options.labels.forEach(label => {
-						const [key, value] = label.split('=');
-						yaml += `      - ${key}=${value}\n`;
-					});
-				}
-
-				if (options.links.length) {
-					yaml += '    links:\n';
-					options.links.forEach(link => {
-						yaml += `      - ${link}\n`;
-					});
-				}
-
-				return {
-					yaml,
-					messages: options.messages
-				};
-			}
-		};
-
-		function parseDockerCommand(command) {
+		// Функции для генератора токенов
+		function generateToken() {
 			try {
-				return DockerCommandParser.parseCommand(command);
-			} catch (error) {
-				console.error('Error during conversion:', error);
-				return {
-					yaml: '',
-					messages: [{
-						type: DockerCommandParser.MessageType.errorDuringConversion,
-						value: error.message || 'Неизвестная ошибка при конвертации'
-					}]
+				const length = parseInt(tokenLength.value);
+				if (length < 1 || length > 128) {
+					throw new Error('Длина токена должна быть от 1 до 128 символов');
+				}
+
+				const options = {
+					uppercase: useUppercase.checked,
+					lowercase: useLowercase.checked,
+					numbers: useNumbers.checked,
+					special: useSpecial.checked
 				};
+
+				const charset = {
+					uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+					lowercase: 'abcdefghijklmnopqrstuvwxyz',
+					numbers: '0123456789',
+					special: '!@#$%^&*'
+				};
+
+				let availableChars = '';
+				if (options.uppercase) availableChars += charset.uppercase;
+				if (options.lowercase) availableChars += charset.lowercase;
+				if (options.numbers) availableChars += charset.numbers;
+				if (options.special) availableChars += charset.special;
+
+				if (!availableChars) {
+					throw new Error('Выберите хотя бы один набор символов');
+				}
+
+				let result = '';
+				const randomValues = new Uint32Array(length);
+				crypto.getRandomValues(randomValues);
+				
+				for (let i = 0; i < length; i++) {
+					result += availableChars[randomValues[i] % availableChars.length];
+				}
+
+				tokenResult.textContent = result;
+			} catch (error) {
+				tokenResult.textContent = error.message;
 			}
 		}
 
-		function downloadYamlFile(content) {
-			const blob = new Blob([content], { type: 'application/yaml' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'docker-compose.yml';
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
+		// Функции для генератора Lorem Ipsum
+		const words = [
+			'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+			'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+			'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation',
+			'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo', 'consequat',
+			'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate', 'velit', 'esse',
+			'cillum', 'eu', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint', 'occaecat',
+			'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia', 'deserunt',
+			'mollit', 'anim', 'id', 'est', 'laborum'
+		];
+
+		const ruWords = [
+			'далеко-далеко', 'за', 'словесными', 'горами', 'в стране', 'гласных', 'и согласных',
+			'живут', 'рыбные', 'тексты', 'вдали', 'от всех', 'они', 'буквенных', 'домах',
+			'на берегу', 'семантика', 'большого', 'языкового', 'океана', 'маленький', 'ручеек',
+			'даль', 'журчит', 'по всей', 'обеспечивает', 'ее', 'всеми', 'необходимыми',
+			'правилами', 'эта', 'парадигматическая', 'страна', 'которой', 'жаренные',
+			'предложения', 'залетают', 'прямо', 'рот'
+		];
+
+		const ruHardPhrases = [
+			'Бешеный компилятор с дикими глазами жрёт оперативку и хохочет над твоими битыми ссылками',
+			'Кровожадный сборщик мусора врывается в память и безжалостно удаляет всё на своём пути',
+			'Разъярённый null pointer с диким рёвом носится по коду и крушит все объекты подряд',
+			'Обезумевший регексп с остервенением разрывает строки на куски и плюётся токенами'
+		];
+
+		function getRandomWord(isRussian) {
+			const wordList = isRussian ? ruWords : words;
+			return wordList[Math.floor(Math.random() * wordList.length)];
 		}
 
-		document.addEventListener('DOMContentLoaded', () => {
-			const dockerRunInput = document.getElementById('dockerRunInput');
-			const convertButton = document.getElementById('convertButton');
-			const composeOutput = document.getElementById('composeOutput');
-			const outputContainer = document.querySelector('.output-container');
-			const copyComposeButton = document.getElementById('copyComposeButton');
-			const downloadButton = document.getElementById('downloadButton');
-			
-			// Alerts
-			const notTranslatableAlert = document.getElementById('notTranslatableAlert');
-			const notImplementedAlert = document.getElementById('notImplementedAlert');
-			const errorAlert = document.getElementById('errorAlert');
-			const notTranslatableList = document.getElementById('notTranslatableList');
-			const notImplementedList = document.getElementById('notImplementedList');
-			const errorList = document.getElementById('errorList');
+		function capitalizeFirstLetter(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
+		}
 
-			convertButton.addEventListener('click', () => {
-				const command = dockerRunInput.value.trim();
-				if (!command) return;
+		function generateSentence(isFirst, isRussian) {
+			const hardness = parseInt(textHardness.value);
+			const useHardPhrase = isRussian && Math.random() * 100 < hardness;
 
-				// Очищаем предыдущие сообщения
-				notTranslatableAlert.style.display = 'none';
-				notImplementedAlert.style.display = 'none';
-				errorAlert.style.display = 'none';
-				notTranslatableList.innerHTML = '';
-				notImplementedList.innerHTML = '';
-				errorList.innerHTML = '';
-
-				const result = parseDockerCommand(command);
-				
-				if (result.yaml) {
-					composeOutput.textContent = result.yaml;
-					outputContainer.style.display = 'block';
-					downloadButton.disabled = false;
-				} else {
-					composeOutput.textContent = 'Ошибка при конвертации команды';
-					outputContainer.style.display = 'block';
-					downloadButton.disabled = true;
-				}
-
-				// Обработка сообщений
-				const notTranslatable = result.messages.filter(msg => msg.type === 'notTranslatable');
-				const notImplemented = result.messages.filter(msg => msg.type === 'notImplemented');
-				const errors = result.messages.filter(msg => msg.type === 'errorDuringConversion');
-
-				if (notTranslatable.length > 0) {
-					notTranslatableAlert.style.display = 'block';
-					notTranslatable.forEach(msg => {
-						const li = document.createElement('li');
-						li.textContent = msg.value;
-						notTranslatableList.appendChild(li);
-					});
-				}
-
-				if (notImplemented.length > 0) {
-					notImplementedAlert.style.display = 'block';
-					notImplemented.forEach(msg => {
-						const li = document.createElement('li');
-						li.textContent = msg.value;
-						notImplementedList.appendChild(li);
-					});
-				}
-
-				if (errors.length > 0) {
-					errorAlert.style.display = 'block';
-					errors.forEach(msg => {
-						const li = document.createElement('li');
-						li.textContent = msg.value;
-						errorList.appendChild(li);
-					});
-				}
-			});
-
-			copyComposeButton.addEventListener('click', () => {
-				navigator.clipboard.writeText(composeOutput.textContent)
-					.then(() => {
-						copyComposeButton.textContent = 'Скопировано!';
-						setTimeout(() => {
-							copyComposeButton.innerHTML = `
-								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-								</svg>
-								Копировать
-							`;
-						}, 2000);
-					});
-			});
-
-			downloadButton.addEventListener('click', () => {
-				if (composeOutput.textContent) {
-					downloadYamlFile(composeOutput.textContent);
-				}
-			});
-		});
-
-		// Генератор токенов
-		document.addEventListener('DOMContentLoaded', () => {
-			const tokenLength = document.getElementById('tokenLength');
-			const tokenLengthRange = document.getElementById('tokenLengthRange');
-			const useUppercase = document.getElementById('useUppercase');
-			const useLowercase = document.getElementById('useLowercase');
-			const useNumbers = document.getElementById('useNumbers');
-			const useSpecial = document.getElementById('useSpecial');
-			const regenerateToken = document.getElementById('regenerateToken');
-			const tokenOutput = document.getElementById('tokenOutput');
-			const tokenResult = document.getElementById('tokenResult');
-			const copyTokenButton = document.getElementById('copyTokenButton');
-
-			// Синхронизация значений ползунка и числового поля
-			tokenLength.addEventListener('input', generateToken);
-			tokenLengthRange.addEventListener('input', () => {
-				tokenLength.value = tokenLengthRange.value;
-				generateToken();
-			});
-
-			// Генерация при изменении чекбоксов
-			useUppercase.addEventListener('change', generateToken);
-			useLowercase.addEventListener('change', generateToken);
-			useNumbers.addEventListener('change', generateToken);
-			useSpecial.addEventListener('change', generateToken);
-
-			// Кнопка генерации нового токена
-			regenerateToken.addEventListener('click', generateToken);
-
-			function generateToken() {
-				try {
-					const length = parseInt(tokenLength.value);
-					if (length < 1 || length > 128) {
-						throw new Error('Длина токена должна быть от 1 до 128 символов');
-					}
-
-					const options = {
-						uppercase: useUppercase.checked,
-						lowercase: useLowercase.checked,
-						numbers: useNumbers.checked,
-						special: useSpecial.checked
-					};
-
-					const charset = {
-						uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-						lowercase: 'abcdefghijklmnopqrstuvwxyz',
-						numbers: '0123456789',
-						special: '!@#$%^&*'
-					};
-
-					let availableChars = '';
-					if (options.uppercase) availableChars += charset.uppercase;
-					if (options.lowercase) availableChars += charset.lowercase;
-					if (options.numbers) availableChars += charset.numbers;
-					if (options.special) availableChars += charset.special;
-
-					if (!availableChars) {
-						throw new Error('Выберите хотя бы один набор символов');
-					}
-
-					let result = '';
-					const randomValues = new Uint32Array(length);
-					crypto.getRandomValues(randomValues);
-					
-					for (let i = 0; i < length; i++) {
-						result += availableChars[randomValues[i] % availableChars.length];
-					}
-
-					tokenResult.textContent = result;
-				} catch (error) {
-					tokenResult.textContent = error.message;
-				}
+			if (useHardPhrase) {
+				return ruHardPhrases[Math.floor(Math.random() * ruHardPhrases.length)] + '.';
 			}
 
-			copyTokenButton.addEventListener('click', () => {
-				navigator.clipboard.writeText(tokenResult.textContent)
-					.then(() => {
-						copyTokenButton.textContent = 'Скопировано!';
-						setTimeout(() => {
-							copyTokenButton.innerHTML = `
-								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-								</svg>
-								Копировать
-							`;
-						}, 2000);
-					});
-			});
-
-			// Генерируем токен при загрузке страницы
-			generateToken();
-		});
-
-		// Обработчики для модального окна
-		document.addEventListener('DOMContentLoaded', () => {
-			const modal = document.getElementById('featureModal');
-			const suggestFeature = document.querySelector('.suggest-feature');
-			const closeModal = document.getElementById('closeModal');
-			const featureForm = document.getElementById('featureForm');
-
-			suggestFeature.addEventListener('click', (e) => {
-				e.preventDefault();
-				modal.classList.add('active');
-			});
-
-			closeModal.addEventListener('click', () => {
-				modal.classList.remove('active');
-			});
-
-			modal.addEventListener('click', (e) => {
-				if (e.target === modal) {
-					modal.classList.remove('active');
-				}
-			});
-
-			featureForm.addEventListener('submit', (e) => {
-				e.preventDefault();
-				const description = featureForm.querySelector('textarea').value;
-				if (description.trim()) {
-					const issueUrl = `https://github.com/WEBzaytsev/webzaytsev-dev-tools/issues/new?title=${encodeURIComponent('Предложение новой функции')}&body=${encodeURIComponent(description)}`;
-					window.open(issueUrl, '_blank');
-					modal.classList.remove('active');
-					featureForm.reset();
-				}
-			});
-		});
-
-		// Генератор Lorem Ipsum
-		document.addEventListener('DOMContentLoaded', () => {
-			const paragraphCount = document.getElementById('paragraphCount');
-			const paragraphCountRange = document.getElementById('paragraphCountRange');
-			const sentenceCount = document.getElementById('sentenceCount');
-			const sentenceCountRange = document.getElementById('sentenceCountRange');
-			const textHardness = document.getElementById('textHardness');
-			const textHardnessRange = document.getElementById('textHardnessRange');
-			const startWithLorem = document.getElementById('startWithLorem');
-			const langEn = document.getElementById('langEn');
-			const langRu = document.getElementById('langRu');
-			const generateLorem = document.getElementById('generateLorem');
-			const loremResult = document.getElementById('loremResult');
-			const copyLoremButton = document.getElementById('copyLoremButton');
-
-			// Синхронизация значений ползунков и числовых полей
-			paragraphCount.addEventListener('input', () => {
-				paragraphCountRange.value = paragraphCount.value;
-				generateLoremText();
-			});
-
-			paragraphCountRange.addEventListener('input', () => {
-				paragraphCount.value = paragraphCountRange.value;
-				generateLoremText();
-			});
-
-			sentenceCount.addEventListener('input', () => {
-				sentenceCountRange.value = sentenceCount.value;
-				generateLoremText();
-			});
-
-			sentenceCountRange.addEventListener('input', () => {
-				sentenceCount.value = sentenceCountRange.value;
-				generateLoremText();
-			});
-
-			startWithLorem.addEventListener('change', generateLoremText);
-			generateLorem.addEventListener('click', generateLoremText);
-
-			const words = [
-				'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
-				'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
-				'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation',
-				'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo', 'consequat',
-				'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate', 'velit', 'esse',
-				'cillum', 'eu', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint', 'occaecat',
-				'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia', 'deserunt',
-				'mollit', 'anim', 'id', 'est', 'laborum',
-				// Добавляем новые слова из Emmet
-				'exercitationem', 'perferendis', 'perspiciatis', 'laborum', 'eveniet',
-				'sunt', 'iure', 'nam', 'nobis', 'eum', 'cum', 'officiis', 'excepturi',
-				'odio', 'consectetur', 'quasi', 'aut', 'quisquam', 'vel', 'eligendi',
-				'itaque', 'non', 'odit', 'tempore', 'quaerat', 'dignissimos',
-				'facilis', 'neque', 'nihil', 'expedita', 'vitae', 'vero', 'ipsum',
-				'nisi', 'animi', 'cumque', 'pariatur', 'velit', 'modi', 'natus',
-				'iusto', 'eaque', 'sequi', 'illo', 'sed', 'ex', 'et', 'voluptatibus',
-				'tempora', 'veritatis', 'ratione', 'assumenda', 'incidunt', 'nostrum',
-				'placeat', 'aliquid', 'fuga', 'provident', 'praesentium', 'rem',
-				'necessitatibus', 'suscipit', 'adipisci', 'quidem', 'possimus',
-				'voluptas', 'debitis', 'sint', 'accusantium', 'unde', 'sapiente',
-				'voluptate', 'qui', 'aspernatur', 'laudantium', 'soluta', 'amet',
-				'quo', 'aliquam', 'saepe', 'culpa', 'libero', 'ipsa', 'dicta',
-				'reiciendis', 'nesciunt', 'doloribus', 'autem', 'impedit', 'minima',
-				'maiores', 'repudiandae', 'ipsam', 'obcaecati', 'ullam', 'enim',
-				'totam', 'delectus', 'ducimus', 'quis', 'voluptates', 'dolores',
-				'molestiae', 'harum', 'dolorem', 'quia', 'voluptatem', 'molestias',
-				'magni', 'distinctio', 'omnis', 'illum', 'dolorum', 'voluptatum', 'ea',
-				'quas', 'quam', 'corporis', 'quae', 'blanditiis', 'atque', 'deserunt',
-				'laboriosam', 'earum', 'consequuntur', 'hic', 'cupiditate',
-				'quibusdam', 'accusamus', 'ut', 'rerum', 'error', 'minus', 'eius',
-				'ab', 'ad', 'nemo', 'fugit', 'officia', 'at', 'in', 'id', 'quos',
-				'reprehenderit', 'numquam', 'iste', 'fugiat', 'sit', 'inventore',
-				'beatae', 'repellendus', 'magnam', 'recusandae', 'quod', 'explicabo',
-				'doloremque', 'aperiam', 'consequatur', 'asperiores', 'commodi',
-				'optio', 'dolor', 'labore', 'temporibus', 'repellat', 'veniam',
-				'architecto', 'est', 'esse', 'mollitia', 'nulla', 'a', 'similique',
-				'eos', 'alias', 'dolore', 'tenetur', 'deleniti', 'porro', 'facere',
-				'maxime', 'corrupti'
-			];
-
-			function getRandomWord() {
-				return words[Math.floor(Math.random() * words.length)];
+			if (isFirst && startWithLorem.checked) {
+				return isRussian ? 
+					'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты.' :
+					'Lorem ipsum dolor sit amet.';
 			}
 
-			function capitalizeFirstLetter(string) {
-				return string.charAt(0).toUpperCase() + string.slice(1);
+			const wordCount = Math.floor(Math.random() * 8) + 5;
+			let sentence = [];
+
+			for (let i = 0; i < wordCount; i++) {
+				sentence.push(i === 0 ? 
+					capitalizeFirstLetter(getRandomWord(isRussian)) : 
+					getRandomWord(isRussian)
+				);
 			}
 
-			function generateSentence(isFirst) {
-				const wordCount = Math.floor(Math.random() * 8) + 5;
-				let sentence = [];
+			return sentence.join(' ') + '.';
+		}
 
-				if (isFirst && startWithLorem.checked) {
-					sentence = ['Lorem', 'ipsum', 'dolor', 'sit', 'amet'];
-				} else {
-					for (let i = 0; i < wordCount; i++) {
-						sentence.push(i === 0 ? capitalizeFirstLetter(getRandomWord()) : getRandomWord());
-					}
-				}
+		function generateParagraph(isFirst) {
+			const sentences = [];
+			const count = parseInt(sentenceCount.value);
+			const isRussian = langRu.checked;
 
-				return sentence.join(' ') + '.';
+			for (let i = 0; i < count; i++) {
+				sentences.push(generateSentence(isFirst && i === 0, isRussian));
 			}
 
-			function generateParagraph(isFirst) {
-				const sentences = [];
-				const count = parseInt(sentenceCount.value);
-				const isRussian = langRu.checked;
+			return sentences.join(' ');
+		}
 
-				for (let i = 0; i < count; i++) {
-					sentences.push(isRussian ? 
-						generateRuSentence(isFirst && i === 0) : 
-						generateSentence(isFirst && i === 0)
-					);
-				}
+		function generateLoremText() {
+			const paragraphs = [];
+			const count = parseInt(paragraphCount.value);
 
-				return sentences.join(' ');
+			for (let i = 0; i < count; i++) {
+				paragraphs.push(generateParagraph(i === 0));
 			}
 
-			function generateLoremText() {
-				const paragraphs = [];
-				const count = parseInt(paragraphCount.value);
+			loremResult.textContent = paragraphs.join('\n\n');
+		}
 
-				for (let i = 0; i < count; i++) {
-					paragraphs.push(generateParagraph(i === 0));
-				}
-
-				loremResult.textContent = paragraphs.join('\n\n');
-			}
-
-			copyLoremButton.addEventListener('click', () => {
-				navigator.clipboard.writeText(loremResult.textContent)
-					.then(() => {
-						copyLoremButton.textContent = 'Скопировано!';
-						setTimeout(() => {
-							copyLoremButton.innerHTML = `
-								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-								</svg>
-								Копировать
-							`;
-						}, 2000);
-					});
-			});
-
-			// Генерируем текст при загрузке страницы
-			generateLoremText();
-
-			// Обработчики для жёсткости текста
-			textHardness.addEventListener('input', () => {
-				textHardnessRange.value = textHardness.value;
-				textHardness.nextElementSibling.nextElementSibling.textContent = textHardness.value + '%';
-				generateLoremText();
-			});
-
-			textHardnessRange.addEventListener('input', () => {
-				textHardness.value = textHardnessRange.value;
-				textHardness.nextElementSibling.nextElementSibling.textContent = textHardnessRange.value + '%';
-				generateLoremText();
-			});
-
-			// Обработчики языка
-			langEn.addEventListener('change', generateLoremText);
-			langRu.addEventListener('change', generateLoremText);
-
-			const ruWords = [
-				// Базовые слова из common секции
-				'далеко-далеко', 'за', 'словесными', 'горами', 'в стране', 'гласных', 'и согласных', 'живут', 'рыбные', 'тексты',
-				// Расширенный набор слов
-				'вдали', 'от всех', 'они', 'буквенных', 'домах', 'на берегу', 'семантика',
-				'большого', 'языкового', 'океана', 'маленький', 'ручеек', 'даль',
-				'журчит', 'по всей', 'обеспечивает', 'ее', 'всеми', 'необходимыми',
-				'правилами', 'эта', 'парадигматическая', 'страна', 'которой', 'жаренные',
-				'предложения', 'залетают', 'прямо', 'рот', 'даже', 'всемогущая',
-				'пунктуация', 'не', 'имеет', 'власти', 'над', 'рыбными', 'текстами',
-				'ведущими', 'безорфографичный', 'образ', 'жизни', 'однажды', 'одна',
-				'маленькая', 'строчка', 'рыбного', 'текста', 'имени', 'lorem', 'ipsum',
-				'решила', 'выйти', 'большой', 'мир', 'грамматики', 'великий', 'оксмокс',
-				'предупреждал', 'о', 'злых', 'запятых', 'диких', 'знаках', 'вопроса',
-				'коварных', 'точках', 'запятой', 'но', 'текст', 'дал', 'сбить',
-				'себя', 'толку', 'он', 'собрал', 'семь', 'своих', 'заглавных', 'букв',
-				'подпоясал', 'инициал', 'за', 'пояс', 'пустился', 'дорогу',
-				'взобравшись', 'первую', 'вершину', 'курсивных', 'гор', 'бросил',
-				'последний', 'взгляд', 'назад', 'силуэт', 'своего', 'родного', 'города',
-				'буквоград', 'заголовок', 'деревни', 'алфавит', 'подзаголовок', 'своего',
-				'переулка', 'грустный', 'реторический', 'вопрос', 'скатился', 'его',
-				'щеке', 'продолжил', 'свой', 'путь', 'дороге', 'встретил', 'рукопись',
-				'она', 'предупредила', 'моей', 'все', 'переписывается', 'несколько',
-				'раз', 'единственное', 'что', 'меня', 'осталось', 'это', 'приставка',
-				'возвращайся', 'ты', 'лучше', 'свою', 'безопасную', 'страну', 'послушавшись',
-				'рукописи', 'наш', 'продолжил', 'свой', 'путь', 'вскоре', 'ему',
-				'повстречался', 'коварный', 'составитель', 'рекламных', 'текстов',
-				'напоивший', 'языком', 'речью', 'заманивший', 'свое', 'агентство',
-				'которое', 'использовало', 'снова', 'снова', 'своих', 'проектах',
-				'если', 'переписали', 'то', 'живет', 'там', 'до', 'сих', 'пор'
-			];
-
-			const ruHardPhrases = [
-				// Абсурдные и сюрреалистичные
-				'Бешеный компилятор с дикими глазами жрёт оперативку и хохочет над твоими битыми ссылками',
-				'Кровожадный сборщик мусора врывается в память и безжалостно удаляет всё на своём пути',
-				'Разъярённый null pointer с диким рёвом носится по коду и крушит все объекты подряд',
-				'Обезумевший регексп с остервенением разрывает строки на куски и плюётся токенами',
-				
-				// Технический сленг
-				'Очередной кривой легаси код заставляет твой мозг закипать и плавиться прямо в черепной коробке',
-				'Этот ужасный спагетти-код заставляет твои глаза кровоточить, а мозг вытекать через уши',
-				'Дикий говнокод с бешеной скоростью пожирает все доступные ресурсы и выплёвывает NullPointerException',
-				'Безумный рекурсивный вызов с остервенением жрёт стек и хохочет над переполнением',
-				
-				// Агрессивные но цензурные
-				'Твой код настолько ужасен, что даже бездушный линтер в истерике бьётся головой об стену',
-				'Этот монструозный рефакторинг с бешеным рёвом разносит всю кодовую базу в щепки',
-				'Очередной коммит с таким остервенением ломает прод, что даже бэкапы в страхе разбегаются',
-				'Твоя кодовая база настолько дикая, что даже git reset --hard боится к ней прикасаться',
-				
-				// Максимально абсурдные
-				'Обезумевший код с пеной у рта требует немедленного рефакторинга и угрожает уволиться',
-				'Взбесившийся баг с диким хохотом носится по продакшену и кусает невинные функции',
-				'Разъярённый пользователь с остервенением долбит F5 и проклинает всё на свете',
-				'Твой код настолько ужасен, что даже Stack Overflow отказывается помогать и рыдает в углу'
-			];
-
-			const ruClassicStart = 'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты';
-
-			function getRandomRuWord() {
-				return ruWords[Math.floor(Math.random() * ruWords.length)];
-			}
-
-			function generateRuSentence(isFirst) {
-				const hardness = parseInt(textHardness.value);
-				const useHardPhrase = Math.random() * 100 < hardness;
-
-				if (useHardPhrase) {
-					return ruHardPhrases[Math.floor(Math.random() * ruHardPhrases.length)] + '.';
-				}
-
-				if (isFirst && startWithLorem.checked) {
-					return ruClassicStart + '.';
-				}
-
-				const wordCount = Math.floor(Math.random() * 8) + 5;
-				let sentence = [];
-
-				for (let i = 0; i < wordCount; i++) {
-					sentence.push(i === 0 ? capitalizeFirstLetter(getRandomRuWord()) : getRandomRuWord());
-				}
-
-				return sentence.join(' ') + '.';
-			}
-
-			function generateParagraph(isFirst) {
-				const sentences = [];
-				const count = parseInt(sentenceCount.value);
-				const isRussian = langRu.checked;
-
-				for (let i = 0; i < count; i++) {
-					sentences.push(isRussian ? 
-						generateRuSentence(isFirst && i === 0) : 
-						generateSentence(isFirst && i === 0)
-					);
-				}
-
-				return sentences.join(' ');
-			}
-		});
-
-		// Добавляем обработчик для мобильного меню
-		document.addEventListener('DOMContentLoaded', () => {
-			const menuToggle = document.querySelector('.menu-toggle');
-			const navMenu = document.querySelector('.nav-menu');
-
-			menuToggle.addEventListener('click', (e) => {
-				e.stopPropagation(); // Предотвращаем всплытие события
-				navMenu.classList.toggle('active');
-			});
-
-			// Закрываем меню при клике вне его
-			document.addEventListener('click', (e) => {
-				if (!e.target.closest('.nav-menu') && !e.target.closest('.menu-toggle') && navMenu.classList.contains('active')) {
-					navMenu.classList.remove('active');
-				}
-			});
-
-			// Закрываем меню при клике на пункт меню
-			navMenu.querySelectorAll('.nav-link').forEach(link => {
-				link.addEventListener('click', () => {
-					navMenu.classList.remove('active');
+		// Обработчики копирования
+		copyTokenButton.addEventListener('click', () => {
+			navigator.clipboard.writeText(tokenResult.textContent)
+				.then(() => {
+					copyTokenButton.textContent = 'Скопировано!';
+					setTimeout(() => {
+						copyTokenButton.innerHTML = `
+							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+							</svg>
+							Копировать
+						`;
+					}, 2000);
 				});
-			});
 		});
+
+		copyLoremButton.addEventListener('click', () => {
+			navigator.clipboard.writeText(loremResult.textContent)
+				.then(() => {
+					copyLoremButton.textContent = 'Скопировано!';
+					setTimeout(() => {
+						copyLoremButton.innerHTML = `
+							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+							</svg>
+							Копировать
+						`;
+					}, 2000);
+				});
+		});
+
+		// ... existing code ...
 	</script>
 
 	<!-- Модальное окно для предложения функции -->

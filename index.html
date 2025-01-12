@@ -1267,7 +1267,7 @@
 
 	<script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<script src="https://unpkg.com/composerize-ts@2.0.0/dist/index.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/composerize@1.7.0/dist/composerize.min.js"></script>
 	<script>
 		// DOM Elements
 		let minPortInput, maxPortInput, rangeCheckbox, rangeField, rangeInput, resultElement, generateButton, copyButton, notificationElement;
@@ -1544,56 +1544,66 @@
 						throw new Error('Пожалуйста, введите команду docker run');
 					}
 
-					const config = parseDockerRun(command);
-					let composeYaml = 'version: "3"\n\nservices:\n';
-					
-					// Используем имя контейнера или генерируем из образа
-					const serviceName = config.name || config.image.replace(/[^a-zA-Z0-9]/g, '-');
-					composeYaml += `  ${serviceName}:\n`;
-					composeYaml += `    image: ${config.image}\n`;
-
-					if (config.restart) {
-						composeYaml += `    restart: ${config.restart}\n`;
+					if (!command.startsWith('docker run')) {
+						throw new Error('Команда должна начинаться с "docker run"');
 					}
 
+					const config = parseDockerRun(command);
+					let yaml = 'version: "3"\n\nservices:\n';
+					const serviceName = config.name || config.image.replace(/[^a-zA-Z0-9]/g, '-');
+					yaml += `  ${serviceName}:\n`;
+					yaml += `    image: ${config.image}\n`;
+
 					if (config.ports.length > 0) {
-						composeYaml += '    ports:\n';
+						yaml += '    ports:\n';
 						config.ports.forEach(port => {
-							composeYaml += `      - "${port}"\n`;
+							yaml += `      - "${port}"\n`;
 						});
 					}
 
 					if (config.volumes.length > 0) {
-						composeYaml += '    volumes:\n';
+						yaml += '    volumes:\n';
 						config.volumes.forEach(volume => {
-							composeYaml += `      - ${volume}\n`;
+							yaml += `      - ${volume}\n`;
 						});
+					}
+
+					if (config.restart) {
+						yaml += `    restart: ${config.restart}\n`;
 					}
 
 					if (config.environment.length > 0) {
-						composeYaml += '    environment:\n';
+						yaml += '    environment:\n';
 						config.environment.forEach(env => {
 							const [key, value] = env.split('=');
-							composeYaml += `      - ${key}=${value}\n`;
+							yaml += `      ${key}: ${value}\n`;
 						});
 					}
 
-					if (config.network) {
-						composeYaml += '    networks:\n';
-						composeYaml += `      - ${config.network}\n`;
-					}
-
 					if (config.command.length > 0) {
-						composeYaml += `    command: ${config.command.join(' ')}\n`;
+						yaml += `    command: ${config.command.join(' ')}\n`;
 					}
 
 					if (config.network) {
-						composeYaml += '\nnetworks:\n';
-						composeYaml += `  ${config.network}:\n`;
-						composeYaml += '    external: true\n';
+						yaml += '    networks:\n';
+						yaml += `      - ${config.network}\n`;
+						yaml += '\nnetworks:\n';
+						yaml += `  ${config.network}:\n`;
+						yaml += '    external: true\n';
 					}
 
-					composeOutput.textContent = composeYaml;
+					// Добавляем логирование
+					if (command.includes('--log-opt')) {
+						yaml += '    logging:\n';
+						yaml += '      driver: json-file\n';
+						yaml += '      options:\n';
+						const logOptMatch = command.match(/--log-opt\s+([^=\s]+)=([^\s]+)/);
+						if (logOptMatch) {
+							yaml += `        ${logOptMatch[1]}: "${logOptMatch[2]}"\n`;
+						}
+					}
+
+					composeOutput.textContent = yaml;
 					outputContainer.style.display = 'block';
 
 				} catch (error) {

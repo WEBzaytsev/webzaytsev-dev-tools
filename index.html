@@ -993,6 +993,81 @@
 				padding: 1rem;
 			}
 		}
+
+		/* Стили для DB Connect */
+		.select-input {
+			width: 100%;
+			padding: 0.75rem;
+			border: 1px solid var(--border-color);
+			border-radius: 8px;
+			font-size: 1rem;
+			background: white;
+			cursor: pointer;
+			outline: none;
+		}
+
+		.select-input:focus {
+			border-color: var(--primary-color);
+		}
+
+		.host-group, .port-group, .password-group {
+			display: flex;
+			gap: 1rem;
+			align-items: center;
+		}
+
+		.host-type {
+			width: 150px;
+			flex-shrink: 0;
+		}
+
+		.text-input {
+			width: 100%;
+			padding: 0.75rem;
+			border: 1px solid var(--border-color);
+			border-radius: 8px;
+			font-size: 1rem;
+			transition: border-color 0.2s;
+			outline: none;
+		}
+
+		.text-input:focus {
+			border-color: var(--primary-color);
+		}
+
+		.text-input:disabled {
+			background: #f5f5f5;
+			cursor: not-allowed;
+		}
+
+		.output-format-group {
+			margin: 1.5rem 0;
+		}
+
+		.output-format-group label {
+			margin-bottom: 1rem;
+		}
+
+		#generateDbPort, #generateDbName, #generateDbUser, #generateDbPassword {
+			padding: 0.75rem 1rem;
+			white-space: nowrap;
+			width: auto;
+		}
+
+		@media (max-width: 768px) {
+			.host-group, .port-group, .password-group {
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.host-type {
+				width: 100%;
+			}
+
+			#generateDbPort, #generateDbName, #generateDbUser, #generateDbPassword {
+				width: 100%;
+			}
+		}
 	</style>
 </head>
 
@@ -1029,6 +1104,7 @@
 					<button class="tab-button" data-tab="hello">Docker</button>
 					<button class="tab-button" data-tab="tokens">Токены</button>
 					<button class="tab-button" data-tab="lorem">Lorem Ipsum</button>
+					<button class="tab-button" data-tab="dbconnect">DB Connect</button>
 				</div>
 
 				<div class="tab-content active" id="ports">
@@ -1207,6 +1283,97 @@
 					</div>
 				</div>
 
+				<div class="tab-content" id="dbconnect">
+					<h2>Генератор данных подключения к БД</h2>
+					
+					<div class="input-group">
+						<label for="dbType">Тип базы данных</label>
+						<select id="dbType" class="select-input">
+							<option value="mysql">MySQL / MariaDB</option>
+							<option value="postgresql">PostgreSQL</option>
+							<option value="mongodb">MongoDB</option>
+							<option value="redis">Redis</option>
+						</select>
+					</div>
+
+					<div class="input-group">
+						<label for="dbHost">Хост</label>
+						<div class="host-group">
+							<select id="dbHostType" class="select-input host-type">
+								<option value="localhost">Локальный</option>
+								<option value="random">Случайный</option>
+								<option value="custom">Свой вариант</option>
+							</select>
+							<input type="text" id="dbHost" class="text-input" value="localhost" disabled>
+						</div>
+					</div>
+
+					<div class="input-group">
+						<label for="dbPort">Порт</label>
+						<div class="port-group">
+							<input type="number" id="dbPort" class="number-input" value="3306">
+							<button id="generateDbPort" class="secondary-button">Сгенерировать</button>
+						</div>
+					</div>
+
+					<div class="input-group">
+						<label for="dbName">Имя базы данных</label>
+						<input type="text" id="dbName" class="text-input" placeholder="mydb">
+						<button id="generateDbName" class="secondary-button">Сгенерировать</button>
+					</div>
+
+					<div class="input-group">
+						<label for="dbUser">Имя пользователя</label>
+						<input type="text" id="dbUser" class="text-input" placeholder="user">
+						<button id="generateDbUser" class="secondary-button">Сгенерировать</button>
+					</div>
+
+					<div class="input-group">
+						<label for="dbPassword">Пароль</label>
+						<div class="password-group">
+							<input type="text" id="dbPassword" class="text-input">
+							<button id="generateDbPassword" class="secondary-button">Сгенерировать</button>
+						</div>
+					</div>
+
+					<div class="checkbox-group">
+						<input type="checkbox" id="dbSsl">
+						<label for="dbSsl">Использовать SSL</label>
+					</div>
+
+					<div class="output-format-group">
+						<label>Формат вывода</label>
+						<div class="radio-group">
+							<div class="radio-item">
+								<input type="radio" id="formatUrl" name="outputFormat" value="url" checked>
+								<label for="formatUrl">URL</label>
+							</div>
+							<div class="radio-item">
+								<input type="radio" id="formatEnv" name="outputFormat" value="env">
+								<label for="formatEnv">.env</label>
+							</div>
+							<div class="radio-item">
+								<input type="radio" id="formatJson" name="outputFormat" value="json">
+								<label for="formatJson">JSON</label>
+							</div>
+							<div class="radio-item">
+								<input type="radio" id="formatDocker" name="outputFormat" value="docker">
+								<label for="formatDocker">Docker</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="code-output-wrapper" style="margin-top: 1rem;">
+						<pre class="code-output" id="dbConnectResult"></pre>
+						<button class="copy-button" id="copyDbConnectButton">
+							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+							</svg>
+							Копировать
+						</button>
+					</div>
+				</div>
+
 				<div class="tab-content" id="about">
 					<h2>О проекте Dev Tools</h2>
 					
@@ -1272,15 +1439,112 @@
 		let minPortInput, maxPortInput, rangeCheckbox, rangeField, rangeInput, resultElement, generateButton, copyButton, notificationElement;
 		let tokenLength, tokenLengthRange, useUppercase, useLowercase, useNumbers, useSpecial, regenerateToken, tokenResult, copyTokenButton;
 		let paragraphCount, paragraphCountRange, sentenceCount, sentenceCountRange, textHardness, textHardnessRange, startWithLorem, langEn, langRu, generateLorem, loremResult, copyLoremButton;
+		let dbType, dbHostType, dbHost, dbPort, dbName, dbUser, dbPassword, dbSsl, dbConnectResult, copyDbConnectButton, generateDbPort, generateDbName, generateDbUser, generateDbPassword;
 
-		// Основные константы
+		// Основные константы для генератора портов
 		const DEFAULT_MIN_PORT = 10024;
 		const DEFAULT_MAX_PORT = 60000;
 		const usedPortsKey = 'usedPorts';
 
-		// Добавляем обработчик для мобильного меню
+		// Функции для генератора портов
+		function loadUsedPorts() {
+			const usedPortsJson = localStorage.getItem(usedPortsKey);
+			return usedPortsJson ? new Set(JSON.parse(usedPortsJson)) : new Set();
+		}
+
+		function saveUsedPorts(usedPorts) {
+			localStorage.setItem(usedPortsKey, JSON.stringify([...usedPorts]));
+		}
+
+		function generateUniqueStartPort(usedPorts, increment, minPort, maxPort) {
+			let attempts = 0;
+			const maxAttempts = 1000;
+
+			while (attempts < maxAttempts) {
+				const startPort = Math.floor(Math.random() * (maxPort - minPort - increment + 1)) + minPort;
+				let isUnique = true;
+
+				for (let i = 0; i <= increment; i++) {
+					if (usedPorts.has(startPort + i)) {
+						isUnique = false;
+						break;
+					}
+				}
+
+				if (isUnique) return startPort;
+				attempts++;
+			}
+
+			throw new Error("Не удалось найти свободный порт после " + maxAttempts + " попыток");
+		}
+
+		function showResult(message, isError = false) {
+			resultElement.textContent = message;
+			resultElement.className = isError ? 'error' : '';
+			copyButton.style.display = isError ? 'none' : 'inline-block';
+		}
+
+		function generatePort() {
+			try {
+				const minPort = parseInt(minPortInput.value, 10) || DEFAULT_MIN_PORT;
+				const maxPort = parseInt(maxPortInput.value, 10) || DEFAULT_MAX_PORT;
+
+				if (minPort < 1000 || maxPort > 65535 || minPort >= maxPort) {
+					throw new Error("Недопустимый диапазон портов");
+				}
+
+				const usedPorts = loadUsedPorts();
+
+				if (rangeCheckbox.checked) {
+					const increment = parseInt(rangeInput.value, 10);
+					
+					if (isNaN(increment) || increment <= 0) {
+						throw new Error("Размер диапазона должен быть положительным числом");
+					}
+
+					const startPort = generateUniqueStartPort(usedPorts, increment, minPort, maxPort);
+					const endPort = startPort + increment;
+
+					for (let port = startPort; port <= endPort; port++) {
+						usedPorts.add(port);
+					}
+
+					saveUsedPorts(usedPorts);
+					showResult(`Сгенерирован диапазон портов: ${startPort}-${endPort}`);
+				} else {
+					const newPort = generateUniqueStartPort(usedPorts, 0, minPort, maxPort);
+					usedPorts.add(newPort);
+					saveUsedPorts(usedPorts);
+					showResult(`Сгенерирован порт: ${newPort}`);
+				}
+			} catch (error) {
+				showResult(error.message, true);
+			}
+		}
+
+		function copyToClipboard() {
+			const resultText = resultElement.textContent;
+			const match = resultText.match(/\d+(-\d+)?/);
+			
+			if (match) {
+				navigator.clipboard.writeText(match[0])
+					.then(() => {
+						notificationElement.textContent = "Скопировано в буфер обмена";
+						notificationElement.style.display = 'block';
+						setTimeout(() => {
+							notificationElement.style.display = 'none';
+						}, 2000);
+					})
+					.catch(err => {
+						console.error('Ошибка копирования:', err);
+						notificationElement.textContent = "Ошибка при копировании";
+						notificationElement.style.display = 'block';
+					});
+			}
+		}
+
 		document.addEventListener('DOMContentLoaded', () => {
-			// Инициализация DOM элементов
+			// Инициализация элементов
 			minPortInput = document.getElementById('minPortInput');
 			maxPortInput = document.getElementById('maxPortInput');
 			rangeCheckbox = document.getElementById('rangeCheckbox');
@@ -1291,6 +1555,7 @@
 			copyButton = document.getElementById('copyButton');
 			notificationElement = document.getElementById('notification');
 
+			// Token elements
 			tokenLength = document.getElementById('tokenLength');
 			tokenLengthRange = document.getElementById('tokenLengthRange');
 			useUppercase = document.getElementById('useUppercase');
@@ -1301,6 +1566,7 @@
 			tokenResult = document.getElementById('tokenResult');
 			copyTokenButton = document.getElementById('copyTokenButton');
 
+			// Lorem elements
 			paragraphCount = document.getElementById('paragraphCount');
 			paragraphCountRange = document.getElementById('paragraphCountRange');
 			sentenceCount = document.getElementById('sentenceCount');
@@ -1313,6 +1579,28 @@
 			generateLorem = document.getElementById('generateLorem');
 			loremResult = document.getElementById('loremResult');
 			copyLoremButton = document.getElementById('copyLoremButton');
+
+			// DB Connect elements
+			dbType = document.getElementById('dbType');
+			dbHostType = document.getElementById('dbHostType');
+			dbHost = document.getElementById('dbHost');
+			dbPort = document.getElementById('dbPort');
+			dbName = document.getElementById('dbName');
+			dbUser = document.getElementById('dbUser');
+			dbPassword = document.getElementById('dbPassword');
+			dbSsl = document.getElementById('dbSsl');
+			dbConnectResult = document.getElementById('dbConnectResult');
+			copyDbConnectButton = document.getElementById('copyDbConnectButton');
+			generateDbPort = document.getElementById('generateDbPort');
+			generateDbName = document.getElementById('generateDbName');
+			generateDbUser = document.getElementById('generateDbUser');
+			generateDbPassword = document.getElementById('generateDbPassword');
+
+			// Проверка на существование элементов
+			if (!dbType || !dbHostType || !dbHost || !dbPort || !dbName || !dbUser || !dbPassword || !dbSsl || !dbConnectResult || !copyDbConnectButton || !generateDbPort || !generateDbName || !generateDbUser || !generateDbPassword) {
+				console.error('Не все элементы DB Connect найдены в DOM');
+				return;
+			}
 
 			// Инициализация переключения вкладок
 			const tabButtons = document.querySelectorAll('.tab-button');
@@ -1653,104 +1941,205 @@
 			// Генерируем начальные значения
 			generateToken();
 			generateLoremText();
-		});
 
-		// Функции для генератора портов
-		function loadUsedPorts() {
-			const usedPortsJson = localStorage.getItem(usedPortsKey);
-			return usedPortsJson ? new Set(JSON.parse(usedPortsJson)) : new Set();
-		}
+			// Обработчик изменения типа БД
+			dbType.addEventListener('change', () => {
+				dbPort.value = defaultPorts[dbType.value];
+				updateOutput();
+			});
 
-		function saveUsedPorts(usedPorts) {
-			localStorage.setItem(usedPortsKey, JSON.stringify([...usedPorts]));
-		}
-
-		function generateUniqueStartPort(usedPorts, increment, minPort, maxPort) {
-			let attempts = 0;
-			const maxAttempts = 1000;
-
-			while (attempts < maxAttempts) {
-				const startPort = Math.floor(Math.random() * (maxPort - minPort - increment + 1)) + minPort;
-				let isUnique = true;
-
-				for (let i = 0; i <= increment; i++) {
-					if (usedPorts.has(startPort + i)) {
-						isUnique = false;
-						break;
-					}
-				}
-
-				if (isUnique) return startPort;
-				attempts++;
-			}
-
-			throw new Error("Не удалось найти свободный порт после " + maxAttempts + " попыток");
-		}
-
-		function showResult(message, isError = false) {
-			resultElement.textContent = message;
-			resultElement.className = isError ? 'error' : '';
-			copyButton.style.display = isError ? 'none' : 'inline-block';
-		}
-
-		function generatePort() {
-			try {
-				const minPort = parseInt(minPortInput.value, 10) || DEFAULT_MIN_PORT;
-				const maxPort = parseInt(maxPortInput.value, 10) || DEFAULT_MAX_PORT;
-
-				if (minPort < 1000 || maxPort > 65535 || minPort >= maxPort) {
-					throw new Error("Недопустимый диапазон портов");
-				}
-
-				const usedPorts = loadUsedPorts();
-
-				if (rangeCheckbox.checked) {
-					const increment = parseInt(rangeInput.value, 10);
-					
-					if (isNaN(increment) || increment <= 0) {
-						throw new Error("Размер диапазона должен быть положительным числом");
-					}
-
-					const startPort = generateUniqueStartPort(usedPorts, increment, minPort, maxPort);
-					const endPort = startPort + increment;
-
-					for (let port = startPort; port <= endPort; port++) {
-						usedPorts.add(port);
-					}
-
-					saveUsedPorts(usedPorts);
-					showResult(`Сгенерирован диапазон портов: ${startPort}-${endPort}`);
+			// Обработчик изменения типа хоста
+			dbHostType.addEventListener('change', () => {
+				if (dbHostType.value === 'localhost') {
+					dbHost.value = 'localhost';
+					dbHost.disabled = true;
+				} else if (dbHostType.value === 'random') {
+					const randomHost = generateRandomHost();
+					dbHost.value = randomHost;
+					dbHost.disabled = true;
 				} else {
-					const newPort = generateUniqueStartPort(usedPorts, 0, minPort, maxPort);
-					usedPorts.add(newPort);
-					saveUsedPorts(usedPorts);
-					showResult(`Сгенерирован порт: ${newPort}`);
+					dbHost.disabled = false;
+					dbHost.value = '';
+					dbHost.focus();
 				}
-			} catch (error) {
-				showResult(error.message, true);
-			}
-		}
+				updateOutput();
+			});
 
-		function copyToClipboard() {
-			const resultText = resultElement.textContent;
-			const match = resultText.match(/\d+(-\d+)?/);
-			
-			if (match) {
-				navigator.clipboard.writeText(match[0])
-					.then(() => {
-						notificationElement.textContent = "Скопировано в буфер обмена";
-						notificationElement.style.display = 'block';
-						setTimeout(() => {
-							notificationElement.style.display = 'none';
-						}, 2000);
-					})
-					.catch(err => {
-						console.error('Ошибка копирования:', err);
-						notificationElement.textContent = "Ошибка при копировании";
-						notificationElement.style.display = 'block';
-					});
+			// Генерация случайного хоста
+			function generateRandomHost() {
+				const domains = ['db', 'database', 'data'];
+				const tlds = ['com', 'net', 'org', 'io'];
+				const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+				const randomTld = tlds[Math.floor(Math.random() * tlds.length)];
+				const randomNum = Math.floor(Math.random() * 1000);
+				return `${randomDomain}${randomNum}.${randomTld}`;
 			}
-		}
+
+			// Генерация случайного имени БД
+			function generateRandomDbName() {
+				const prefixes = ['db', 'data', 'prod', 'dev', 'test'];
+				const suffixes = ['main', 'app', 'service', 'api'];
+				const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+				const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+				const randomNum = Math.floor(Math.random() * 1000);
+				return `${prefix}_${suffix}_${randomNum}`;
+			}
+
+			// Генерация случайного имени пользователя
+			function generateRandomUsername() {
+				const prefixes = ['user', 'admin', 'db', 'app'];
+				const randomNum = Math.floor(Math.random() * 1000);
+				return `${prefixes[Math.floor(Math.random() * prefixes.length)]}_${randomNum}`;
+			}
+
+			// Обработчики кнопок генерации
+			generateDbPort.addEventListener('click', () => {
+				const minPort = 10000;
+				const maxPort = 65535;
+				dbPort.value = Math.floor(Math.random() * (maxPort - minPort + 1)) + minPort;
+				updateOutput();
+			});
+
+			generateDbName.addEventListener('click', () => {
+				dbName.value = generateRandomDbName();
+				updateOutput();
+			});
+
+			generateDbUser.addEventListener('click', () => {
+				dbUser.value = generateRandomUsername();
+				updateOutput();
+			});
+
+			// Функция генерации пароля
+			function generatePassword() {
+				const length = 16;
+				const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+				const randomValues = new Uint32Array(length);
+				crypto.getRandomValues(randomValues);
+				
+				let password = '';
+				for (let i = 0; i < length; i++) {
+					password += charset[randomValues[i] % charset.length];
+				}
+				return password;
+			}
+
+			// Обработчик кнопки генерации пароля
+			generateDbPassword.addEventListener('click', () => {
+				dbPassword.value = generatePassword();
+				updateOutput();
+			});
+
+			// Обработчики изменения значений
+			[dbHost, dbPort, dbName, dbUser, dbPassword].forEach(input => {
+				input.addEventListener('input', updateOutput);
+			});
+
+			dbSsl.addEventListener('change', updateOutput);
+
+			document.querySelectorAll('input[name="outputFormat"]').forEach(radio => {
+				radio.addEventListener('change', updateOutput);
+			});
+
+			// Форматирование вывода
+			function updateOutput() {
+				const format = document.querySelector('input[name="outputFormat"]:checked').value;
+				let output = '';
+
+				const config = {
+					type: dbType.value,
+					host: dbHost.value,
+					port: dbPort.value,
+					database: dbName.value,
+					username: dbUser.value,
+					password: dbPassword.value,
+					ssl: dbSsl.checked
+				};
+
+				switch (format) {
+					case 'url':
+						output = generateUrlFormat(config);
+						break;
+					case 'env':
+						output = generateEnvFormat(config);
+						break;
+					case 'json':
+						output = generateJsonFormat(config);
+						break;
+					case 'docker':
+						output = generateDockerFormat(config);
+						break;
+				}
+
+				dbConnectResult.textContent = output;
+			}
+
+			function generateUrlFormat(config) {
+				const sslParam = config.ssl ? '?ssl=true' : '';
+				
+				switch (config.type) {
+					case 'mysql':
+						return `mysql://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}${sslParam}`;
+					case 'postgresql':
+						return `postgresql://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}${sslParam}`;
+					case 'mongodb':
+						return `mongodb://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}${sslParam}`;
+					case 'redis':
+						return `redis://${config.username}:${config.password}@${config.host}:${config.port}${sslParam}`;
+				}
+			}
+
+			function generateEnvFormat(config) {
+				const prefix = config.type.toUpperCase();
+				return `${prefix}_HOST=${config.host}
+${prefix}_PORT=${config.port}
+${prefix}_DATABASE=${config.database}
+${prefix}_USER=${config.username}
+${prefix}_PASSWORD=${config.password}
+${prefix}_SSL=${config.ssl}`;
+			}
+
+			function generateJsonFormat(config) {
+				return JSON.stringify({
+					host: config.host,
+					port: parseInt(config.port),
+					database: config.database,
+					user: config.username,
+					password: config.password,
+					ssl: config.ssl
+				}, null, 2);
+			}
+
+			function generateDockerFormat(config) {
+				const prefix = config.type.toUpperCase();
+				return `environment:
+  - ${prefix}_HOST=${config.host}
+  - ${prefix}_PORT=${config.port}
+  - ${prefix}_DATABASE=${config.database}
+  - ${prefix}_USER=${config.username}
+  - ${prefix}_PASSWORD=${config.password}
+  - ${prefix}_SSL=${config.ssl}`;
+			}
+
+			// Копирование результата
+			copyDbConnectButton.addEventListener('click', () => {
+				navigator.clipboard.writeText(dbConnectResult.textContent)
+					.then(() => {
+						copyDbConnectButton.textContent = 'Скопировано!';
+						setTimeout(() => {
+							copyDbConnectButton.innerHTML = `
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
+
+			// Инициализация начального состояния
+			updateOutput();
+		});
 
 		// Функции для генератора токенов
 		function generateToken() {
@@ -1884,37 +2273,6 @@
 
 			loremResult.textContent = paragraphs.join('\n\n');
 		}
-
-		// Обработчики копирования
-		copyTokenButton.addEventListener('click', () => {
-			navigator.clipboard.writeText(tokenResult.textContent)
-				.then(() => {
-					copyTokenButton.textContent = 'Скопировано!';
-					setTimeout(() => {
-						copyTokenButton.innerHTML = `
-							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-							</svg>
-							Копировать
-						`;
-					}, 2000);
-				});
-		});
-
-		copyLoremButton.addEventListener('click', () => {
-			navigator.clipboard.writeText(loremResult.textContent)
-				.then(() => {
-					copyLoremButton.textContent = 'Скопировано!';
-					setTimeout(() => {
-						copyLoremButton.innerHTML = `
-							<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-								<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-							</svg>
-							Копировать
-						`;
-					}, 2000);
-				});
-		});
 
 		// ... existing code ...
 	</script>

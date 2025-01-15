@@ -1082,12 +1082,12 @@
 			</ul>
 		</div>
 		<div class="nav-right">
-			<a href="#" class="suggest-feature">
-				<svg viewBox="0 0 24 24">
-					<path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-				</svg>
-				Предложить функцию
-			</a>
+		<a href="#" class="suggest-feature">
+			<svg viewBox="0 0 24 24">
+				<path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+			</svg>
+			Предложить функцию
+		</a>
 			<button class="menu-toggle">
 				<svg viewBox="0 0 24 24" width="24" height="24">
 					<path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
@@ -1842,25 +1842,25 @@
 					yaml += `    image: ${config.image}\n`;
 
 					if (config.ports.length > 0) {
-						yaml += '    ports:\n';
+					yaml += '    ports:\n';
 						config.ports.forEach(port => {
-							yaml += `      - "${port}"\n`;
-						});
-					}
+						yaml += `      - "${port}"\n`;
+					});
+				}
 
 					if (config.volumes.length > 0) {
-						yaml += '    volumes:\n';
+					yaml += '    volumes:\n';
 						config.volumes.forEach(volume => {
-							yaml += `      - ${volume}\n`;
-						});
-					}
+						yaml += `      - ${volume}\n`;
+					});
+				}
 
 					if (config.restart) {
 						yaml += `    restart: ${config.restart}\n`;
 					}
 
 					if (config.environment.length > 0) {
-						yaml += '    environment:\n';
+					yaml += '    environment:\n';
 						config.environment.forEach(env => {
 							const [key, value] = env.split('=');
 							yaml += `      ${key}: ${value}\n`;
@@ -1942,11 +1942,27 @@
 			generateToken();
 			generateLoremText();
 
+			// Дефолтные порты для разных БД
+			const defaultPorts = {
+				mysql: 3306,
+				postgresql: 5432,
+				mongodb: 27017,
+				redis: 6379
+			};
+
 			// Обработчик изменения типа БД
 			dbType.addEventListener('change', () => {
-				dbPort.value = defaultPorts[dbType.value];
-				updateOutput();
+				const selectedType = dbType.value;
+				if (defaultPorts[selectedType]) {
+					dbPort.value = defaultPorts[selectedType];
+					updateOutput();
+				}
 			});
+
+			// Установка начального значения порта
+			if (dbType && dbPort) {
+				dbPort.value = defaultPorts[dbType.value] || 3306;
+			}
 
 			// Обработчик изменения типа хоста
 			dbHostType.addEventListener('change', () => {
@@ -2010,6 +2026,11 @@
 				updateOutput();
 			});
 
+			generateDbPassword.addEventListener('click', () => {
+				dbPassword.value = generatePassword();
+				updateOutput();
+			});
+
 			// Функция генерации пароля
 			function generatePassword() {
 				const length = 16;
@@ -2032,10 +2053,14 @@
 
 			// Обработчики изменения значений
 			[dbHost, dbPort, dbName, dbUser, dbPassword].forEach(input => {
-				input.addEventListener('input', updateOutput);
+				if (input) {
+					input.addEventListener('input', updateOutput);
+				}
 			});
 
-			dbSsl.addEventListener('change', updateOutput);
+			if (dbSsl) {
+				dbSsl.addEventListener('change', updateOutput);
+			}
 
 			document.querySelectorAll('input[name="outputFormat"]').forEach(radio => {
 				radio.addEventListener('change', updateOutput);
@@ -2071,7 +2096,9 @@
 						break;
 				}
 
-				dbConnectResult.textContent = output;
+				if (dbConnectResult) {
+					dbConnectResult.textContent = output;
+				}
 			}
 
 			function generateUrlFormat(config) {
@@ -2122,96 +2149,98 @@ ${prefix}_SSL=${config.ssl}`;
 			}
 
 			// Копирование результата
-			copyDbConnectButton.addEventListener('click', () => {
-				navigator.clipboard.writeText(dbConnectResult.textContent)
-					.then(() => {
-						copyDbConnectButton.textContent = 'Скопировано!';
-						setTimeout(() => {
-							copyDbConnectButton.innerHTML = `
-								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-								</svg>
-								Копировать
-							`;
-						}, 2000);
-					});
-			});
+			if (copyDbConnectButton) {
+				copyDbConnectButton.addEventListener('click', () => {
+					navigator.clipboard.writeText(dbConnectResult.textContent)
+						.then(() => {
+							copyDbConnectButton.textContent = 'Скопировано!';
+							setTimeout(() => {
+								copyDbConnectButton.innerHTML = `
+									<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+										<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+									</svg>
+									Копировать
+								`;
+							}, 2000);
+						});
+				});
+			}
 
 			// Инициализация начального состояния
 			updateOutput();
 		});
 
 		// Функции для генератора токенов
-		function generateToken() {
-			try {
-				const length = parseInt(tokenLength.value);
-				if (length < 1 || length > 128) {
-					throw new Error('Длина токена должна быть от 1 до 128 символов');
+			function generateToken() {
+				try {
+					const length = parseInt(tokenLength.value);
+					if (length < 1 || length > 128) {
+						throw new Error('Длина токена должна быть от 1 до 128 символов');
+					}
+
+					const options = {
+						uppercase: useUppercase.checked,
+						lowercase: useLowercase.checked,
+						numbers: useNumbers.checked,
+						special: useSpecial.checked
+					};
+
+					const charset = {
+						uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+						lowercase: 'abcdefghijklmnopqrstuvwxyz',
+						numbers: '0123456789',
+						special: '!@#$%^&*'
+					};
+
+					let availableChars = '';
+					if (options.uppercase) availableChars += charset.uppercase;
+					if (options.lowercase) availableChars += charset.lowercase;
+					if (options.numbers) availableChars += charset.numbers;
+					if (options.special) availableChars += charset.special;
+
+					if (!availableChars) {
+						throw new Error('Выберите хотя бы один набор символов');
+					}
+
+					let result = '';
+					const randomValues = new Uint32Array(length);
+					crypto.getRandomValues(randomValues);
+					
+					for (let i = 0; i < length; i++) {
+						result += availableChars[randomValues[i] % availableChars.length];
+					}
+
+					tokenResult.textContent = result;
+				} catch (error) {
+					tokenResult.textContent = error.message;
 				}
-
-				const options = {
-					uppercase: useUppercase.checked,
-					lowercase: useLowercase.checked,
-					numbers: useNumbers.checked,
-					special: useSpecial.checked
-				};
-
-				const charset = {
-					uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-					lowercase: 'abcdefghijklmnopqrstuvwxyz',
-					numbers: '0123456789',
-					special: '!@#$%^&*'
-				};
-
-				let availableChars = '';
-				if (options.uppercase) availableChars += charset.uppercase;
-				if (options.lowercase) availableChars += charset.lowercase;
-				if (options.numbers) availableChars += charset.numbers;
-				if (options.special) availableChars += charset.special;
-
-				if (!availableChars) {
-					throw new Error('Выберите хотя бы один набор символов');
-				}
-
-				let result = '';
-				const randomValues = new Uint32Array(length);
-				crypto.getRandomValues(randomValues);
-				
-				for (let i = 0; i < length; i++) {
-					result += availableChars[randomValues[i] % availableChars.length];
-				}
-
-				tokenResult.textContent = result;
-			} catch (error) {
-				tokenResult.textContent = error.message;
 			}
-		}
 
 		// Функции для генератора Lorem Ipsum
-		const words = [
-			'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
-			'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
-			'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation',
-			'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo', 'consequat',
-			'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate', 'velit', 'esse',
-			'cillum', 'eu', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint', 'occaecat',
-			'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia', 'deserunt',
+			const words = [
+				'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+				'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+				'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation',
+				'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo', 'consequat',
+				'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate', 'velit', 'esse',
+				'cillum', 'eu', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint', 'occaecat',
+				'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia', 'deserunt',
 			'mollit', 'anim', 'id', 'est', 'laborum'
 		];
 
-		const ruWords = [
+			const ruWords = [
 			'далеко-далеко', 'за', 'словесными', 'горами', 'в стране', 'гласных', 'и согласных',
 			'живут', 'рыбные', 'тексты', 'вдали', 'от всех', 'они', 'буквенных', 'домах',
 			'на берегу', 'семантика', 'большого', 'языкового', 'океана', 'маленький', 'ручеек',
 			'даль', 'журчит', 'по всей', 'обеспечивает', 'ее', 'всеми', 'необходимыми',
-			'правилами', 'эта', 'парадигматическая', 'страна', 'которой', 'жаренные',
+				'правилами', 'эта', 'парадигматическая', 'страна', 'которой', 'жаренные',
 			'предложения', 'залетают', 'прямо', 'рот'
-		];
+			];
 
-		const ruHardPhrases = [
-			'Бешеный компилятор с дикими глазами жрёт оперативку и хохочет над твоими битыми ссылками',
-			'Кровожадный сборщик мусора врывается в память и безжалостно удаляет всё на своём пути',
-			'Разъярённый null pointer с диким рёвом носится по коду и крушит все объекты подряд',
+			const ruHardPhrases = [
+				'Бешеный компилятор с дикими глазами жрёт оперативку и хохочет над твоими битыми ссылками',
+				'Кровожадный сборщик мусора врывается в память и безжалостно удаляет всё на своём пути',
+				'Разъярённый null pointer с диким рёвом носится по коду и крушит все объекты подряд',
 			'Обезумевший регексп с остервенением разрывает строки на куски и плюётся токенами'
 		];
 
@@ -2225,43 +2254,43 @@ ${prefix}_SSL=${config.ssl}`;
 		}
 
 		function generateSentence(isFirst, isRussian) {
-			const hardness = parseInt(textHardness.value);
+				const hardness = parseInt(textHardness.value);
 			const useHardPhrase = isRussian && Math.random() * 100 < hardness;
 
-			if (useHardPhrase) {
-				return ruHardPhrases[Math.floor(Math.random() * ruHardPhrases.length)] + '.';
-			}
+				if (useHardPhrase) {
+					return ruHardPhrases[Math.floor(Math.random() * ruHardPhrases.length)] + '.';
+				}
 
-			if (isFirst && startWithLorem.checked) {
+				if (isFirst && startWithLorem.checked) {
 				return isRussian ? 
 					'Далеко-далеко за словесными горами в стране гласных и согласных живут рыбные тексты.' :
 					'Lorem ipsum dolor sit amet.';
-			}
+				}
 
-			const wordCount = Math.floor(Math.random() * 8) + 5;
-			let sentence = [];
+				const wordCount = Math.floor(Math.random() * 8) + 5;
+				let sentence = [];
 
-			for (let i = 0; i < wordCount; i++) {
+				for (let i = 0; i < wordCount; i++) {
 				sentence.push(i === 0 ? 
 					capitalizeFirstLetter(getRandomWord(isRussian)) : 
 					getRandomWord(isRussian)
 				);
+				}
+
+				return sentence.join(' ') + '.';
 			}
 
-			return sentence.join(' ') + '.';
-		}
+			function generateParagraph(isFirst) {
+				const sentences = [];
+				const count = parseInt(sentenceCount.value);
+				const isRussian = langRu.checked;
 
-		function generateParagraph(isFirst) {
-			const sentences = [];
-			const count = parseInt(sentenceCount.value);
-			const isRussian = langRu.checked;
-
-			for (let i = 0; i < count; i++) {
+				for (let i = 0; i < count; i++) {
 				sentences.push(generateSentence(isFirst && i === 0, isRussian));
-			}
+				}
 
-			return sentences.join(' ');
-		}
+				return sentences.join(' ');
+			}
 
 		function generateLoremText() {
 			const paragraphs = [];

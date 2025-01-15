@@ -1426,6 +1426,20 @@
 								<li>Мгновенное копирование результата</li>
 							</ul>
 						</div>
+
+						<div class="tool-card">
+							<h4>DB Connect</h4>
+							<p>Генератор данных подключения к базам данных с широкими возможностями настройки:</p>
+							<ul>
+								<li>Поддержка MySQL/MariaDB, PostgreSQL, MongoDB, Redis</li>
+								<li>Автоматическая установка портов по умолчанию</li>
+								<li>Генерация имен баз данных на основе хоста</li>
+								<li>Генерация безопасных паролей и имен пользователей</li>
+								<li>Форматы вывода: URL, .env, JSON, Docker</li>
+								<li>Поддержка SSL-подключений</li>
+								<li>Быстрое копирование результата</li>
+							</ul>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -2185,18 +2199,18 @@ ${prefix}_SSL=${config.ssl}`;
 			if (copyDbConnectButton) {
 				copyDbConnectButton.addEventListener('click', () => {
 					navigator.clipboard.writeText(dbConnectResult.textContent)
-						.then(() => {
+					.then(() => {
 							copyDbConnectButton.textContent = 'Скопировано!';
-							setTimeout(() => {
+						setTimeout(() => {
 								copyDbConnectButton.innerHTML = `
-									<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
-										<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-									</svg>
-									Копировать
-								`;
-							}, 2000);
-						});
-				});
+								<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+								</svg>
+								Копировать
+							`;
+						}, 2000);
+					});
+			});
 			}
 
 			// Инициализация начального состояния

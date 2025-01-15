@@ -1993,19 +1993,53 @@
 
 			// Генерация случайного имени БД
 			function generateRandomDbName() {
-				const prefixes = ['db', 'data', 'prod', 'dev', 'test'];
-				const suffixes = ['main', 'app', 'service', 'api'];
-				const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-				const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-				const randomNum = Math.floor(Math.random() * 1000);
-				return `${prefix}_${suffix}_${randomNum}`;
-			}
+				if (dbHostType.value === 'custom' && dbHost.value) {
+					// Извлекаем имя хоста без домена и очищаем от спецсимволов
+					const hostBase = dbHost.value.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
+					const randomNum = Math.floor(Math.random() * 100);
+					return `${hostBase}_user${randomNum}`;
+				}
 
-			// Генерация случайного имени пользователя
-			function generateRandomUsername() {
 				const prefixes = ['user', 'admin', 'db', 'app'];
 				const randomNum = Math.floor(Math.random() * 1000);
 				return `${prefixes[Math.floor(Math.random() * prefixes.length)]}_${randomNum}`;
+			}
+
+			function generatePassword() {
+				if (dbHostType.value === 'custom' && dbHost.value) {
+					// Создаем основу пароля из имени хоста
+					const hostBase = dbHost.value.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
+					const randomChars = generateRandomChars(8); // Генерируем 8 случайных символов
+					const specialChars = '!@#$%^&*';
+					const randomSpecial = specialChars[Math.floor(Math.random() * specialChars.length)];
+					const randomNum = Math.floor(Math.random() * 1000);
+					
+					// Комбинируем все части в надежный пароль
+					return `${hostBase}${randomSpecial}${randomNum}${randomChars}`;
+				}
+
+				const length = 16;
+				const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+				const randomValues = new Uint32Array(length);
+				crypto.getRandomValues(randomValues);
+				
+				let password = '';
+				for (let i = 0; i < length; i++) {
+					password += charset[randomValues[i] % charset.length];
+				}
+				return password;
+			}
+
+			function generateRandomChars(length) {
+				const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+				const randomValues = new Uint32Array(length);
+				crypto.getRandomValues(randomValues);
+				
+				let result = '';
+				for (let i = 0; i < length; i++) {
+					result += charset[randomValues[i] % charset.length];
+				}
+				return result;
 			}
 
 			// Обработчики кнопок генерации
@@ -2026,26 +2060,6 @@
 				updateOutput();
 			});
 
-			generateDbPassword.addEventListener('click', () => {
-				dbPassword.value = generatePassword();
-				updateOutput();
-			});
-
-			// Функция генерации пароля
-			function generatePassword() {
-				const length = 16;
-				const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-				const randomValues = new Uint32Array(length);
-				crypto.getRandomValues(randomValues);
-				
-				let password = '';
-				for (let i = 0; i < length; i++) {
-					password += charset[randomValues[i] % charset.length];
-				}
-				return password;
-			}
-
-			// Обработчик кнопки генерации пароля
 			generateDbPassword.addEventListener('click', () => {
 				dbPassword.value = generatePassword();
 				updateOutput();

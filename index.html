@@ -1996,6 +1996,25 @@
 				if (dbHostType.value === 'custom' && dbHost.value) {
 					// Извлекаем имя хоста без домена и очищаем от спецсимволов
 					const hostBase = dbHost.value.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
+					const suffixes = ['db', 'data', 'store'];
+					const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+					const randomNum = Math.floor(Math.random() * 100);
+					return `${hostBase}_${suffix}${randomNum}`;
+				}
+
+				const prefixes = ['db', 'data', 'prod', 'dev', 'test'];
+				const suffixes = ['main', 'app', 'service', 'api'];
+				const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+				const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+				const randomNum = Math.floor(Math.random() * 1000);
+				return `${prefix}_${suffix}_${randomNum}`;
+			}
+
+			// Генерация случайного имени пользователя
+			function generateRandomUsername() {
+				if (dbHostType.value === 'custom' && dbHost.value) {
+					// Извлекаем имя хоста без домена и очищаем от спецсимволов
+					const hostBase = dbHost.value.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
 					const randomNum = Math.floor(Math.random() * 100);
 					return `${hostBase}_user${randomNum}`;
 				}

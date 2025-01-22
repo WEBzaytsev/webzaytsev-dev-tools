@@ -1771,7 +1771,10 @@
 
 			// Функции для Docker конвертера
 			function parseDockerRun(command) {
-				const parts = command.split(' ');
+				// Очищаем команду от переносов строк и лишних пробелов
+				command = command.replace(/\\\s*\n/g, ' ').trim();
+				
+				const parts = command.split(' ').filter(part => part !== '');
 				if (parts[0] !== 'docker' || parts[1] !== 'run') {
 					throw new Error('Команда должна начинаться с "docker run"');
 				}
@@ -1780,7 +1783,7 @@
 					image: '',
 					ports: [],
 					volumes: [],
-					environment: [],
+					environment: {},
 					restart: '',
 					name: '',
 					network: '',
@@ -1789,7 +1792,14 @@
 
 				let i = 2;
 				while (i < parts.length) {
-					switch (parts[i]) {
+					const part = parts[i];
+					
+					if (!part) {
+						i++;
+						continue;
+					}
+
+					switch (part) {
 						case '-p':
 						case '--publish':
 							result.ports.push(parts[++i]);
@@ -1800,7 +1810,9 @@
 							break;
 						case '-e':
 						case '--env':
-							result.environment.push(parts[++i]);
+							const envVar = parts[++i];
+							const [key, value] = envVar.split('=');
+							result.environment[key] = value;
 							break;
 						case '--restart':
 							result.restart = parts[++i];
@@ -1811,14 +1823,18 @@
 						case '--network':
 							result.network = parts[++i];
 							break;
+						case '-d':
+						case '--detach':
+							// Пропускаем флаг detach
+							break;
 						default:
-							if (parts[i].startsWith('-')) {
+							if (part.startsWith('-')) {
 								i++; // Пропускаем значение неподдерживаемой опции
 							} else {
 								if (!result.image) {
-									result.image = parts[i];
+									result.image = part;
 								} else {
-									result.command.push(parts[i]);
+									result.command.push(part);
 								}
 							}
 					}
@@ -1845,40 +1861,37 @@
 						throw new Error('Пожалуйста, введите команду docker run');
 					}
 
-					if (!command.startsWith('docker run')) {
-						throw new Error('Команда должна начинаться с "docker run"');
-					}
-
 					const config = parseDockerRun(command);
-					let yaml = 'version: "3"\n\nservices:\n';
-					const serviceName = config.name || config.image.replace(/[^a-zA-Z0-9]/g, '-');
-					yaml += `  ${serviceName}:\n`;
+					
+					// Определяем имя сервиса
+					const serviceName = config.name || config.image.split('/').pop().replace(/[^a-zA-Z0-9]/g, '-');
+					
+					let yaml = `version: '3.9'\n\nservices:\n  ${serviceName}:\n`;
 					yaml += `    image: ${config.image}\n`;
 
 					if (config.ports.length > 0) {
-					yaml += '    ports:\n';
+						yaml += '    ports:\n';
 						config.ports.forEach(port => {
-						yaml += `      - "${port}"\n`;
-					});
-				}
+							yaml += `      - '${port}'\n`;
+						});
+					}
 
 					if (config.volumes.length > 0) {
-					yaml += '    volumes:\n';
+						yaml += '    volumes:\n';
 						config.volumes.forEach(volume => {
-						yaml += `      - ${volume}\n`;
-					});
-				}
+							yaml += `      - '${volume}'\n`;
+						});
+					}
+
+					if (Object.keys(config.environment).length > 0) {
+						yaml += '    environment:\n';
+						for (const [key, value] of Object.entries(config.environment)) {
+							yaml += `      - ${key}=${value}\n`;
+						}
+					}
 
 					if (config.restart) {
 						yaml += `    restart: ${config.restart}\n`;
-					}
-
-					if (config.environment.length > 0) {
-					yaml += '    environment:\n';
-						config.environment.forEach(env => {
-							const [key, value] = env.split('=');
-							yaml += `      ${key}: ${value}\n`;
-						});
 					}
 
 					if (config.command.length > 0) {
@@ -1886,22 +1899,9 @@
 					}
 
 					if (config.network) {
-						yaml += '    networks:\n';
-						yaml += `      - ${config.network}\n`;
 						yaml += '\nnetworks:\n';
 						yaml += `  ${config.network}:\n`;
 						yaml += '    external: true\n';
-					}
-
-					// Добавляем логирование
-					if (command.includes('--log-opt')) {
-						yaml += '    logging:\n';
-						yaml += '      driver: json-file\n';
-						yaml += '      options:\n';
-						const logOptMatch = command.match(/--log-opt\s+([^=\s]+)=([^\s]+)/);
-						if (logOptMatch) {
-							yaml += `        ${logOptMatch[1]}: "${logOptMatch[2]}"\n`;
-						}
 					}
 
 					composeOutput.textContent = yaml;
